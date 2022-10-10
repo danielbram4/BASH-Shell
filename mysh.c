@@ -37,13 +37,14 @@ bool readCL()
   int exitCond = false;
   int endOfString = false;
   int i = 0;
+  int k = 0;
   char *delimit = buffer;
   char arg1[BUFF_LEN] = {};
   char arg2[BUFF_LEN] = {};
   
   bytesRead = read(0, buffer, BUFF_LEN);
   exitCond = checkExit(bytesRead);
-  /*Tokenizes first argument*/
+  /*Tokenizes two arguments*/
   if(exitCond == false)
     {
       while(*delimit != ' ' && endOfString == false)
@@ -59,13 +60,20 @@ bool readCL()
 	      endOfString = true;
 	    }
 	}
-      printf("first arg is: %s\n", arg1);
-      /*Tokenize 2nd Argument*/
+       printf("\nfirst arg is: %s\n", arg1);
+       while(endOfString == false)
+	 {
+	   i++;
+	   arg2[k] = buffer[i];
+	   k++;
+	   if(buffer[i] == '\n')
+	     {
+	       endOfString = true;
+	     }
+	 }
+      
+      printf("\nsecond arg is: %s\n\n", arg2);
     }
-  //For testing
-  
-  //printf("first arg is: %s\n", arg1);
-  //printf("second arg is: %s\n", arg2);
   return exitCond;
 }
 bool checkExit(int bytesRead)
