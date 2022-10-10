@@ -1,0 +1,5 @@
+mysh: mysh.o
+	gcc mysh.o -o mysh
+
+mysh.o: mysh.c mysh.h
+	gcc mysh.c
