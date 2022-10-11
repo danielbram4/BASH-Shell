@@ -4,16 +4,19 @@
 */
 #include <stdio.h>
 #include <unistd.h>
-#include <string.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #define BUFF_LEN 256
 typedef int bool;
 #define true 1
 #define false 0
 
 bool readCL();
+void clearCL();
 bool checkExit(int bytesRead);
 char buffer[BUFF_LEN] = {};
 
+//Represents the Command Line as a structure
 struct CLInput
 {
   char arg1[BUFF_LEN];
@@ -27,17 +30,33 @@ int main()
 {
   int bytesRead;
   bool exit = false;
+  pid_t pid;
+  int status;
+
+  char * const newenvp[] = { NULL };
+
   write(1, "mysh$ ", 6);
   exit = readCL();
 
+  char * const newargv[] = { commandLine.arg1 , commandLine.arg2,NULL };
+  
   while(exit == false)
     {
       //Process CL **TO DO**
       
-      //Reading CL
-      write(1, "mysh$ ", 6);
-      exit = readCL();
-
+      pid = fork();
+      if(pid == 0)
+	{
+	  //printf("Hello from child");
+	  execve(commandLine.arg1, newargv, newenvp);
+	}
+      else
+	{
+	  waitpid(pid, &status, 0);
+	  //Reading CL
+	  write(1, "mysh$ ", 6);
+	  exit = readCL();
+	}
     }
   return 0;
 }
@@ -55,8 +74,7 @@ bool readCL()
   /*Tokenizes two arguments*/
   if(exitCond == false)
     {
-      memset(commandLine.arg1, 0 , sizeof commandLine.arg1);
-      memset(commandLine.arg2, 0 , sizeof commandLine.arg2);
+      clearCL();
       while(*delimit != ' ' && endOfString == false)
 	{
 	  commandLine.arg1[i] = buffer[i];
@@ -74,15 +92,18 @@ bool readCL()
        while(endOfString == false)
 	 {
 	   i++;
-	   commandLine.arg2[k] = buffer[i];
-	   k++;
 	   if(buffer[i] == '\n')
 	     {
 	       endOfString = true;
 	     }
+	   else
+	     {
+	       commandLine.arg2[k] = buffer[i];
+	       k++;
+	     }
 	 }
       
-      printf("\nsecond arg is: %s\n\n", commandLine.arg2);
+      printf("\nsecond arg is: %s\n", commandLine.arg2);
     }
   return exitCond;
 }
@@ -98,4 +119,14 @@ bool checkExit(int bytesRead)
       sameString = true;
     }
   return sameString;
+}
+
+void clearCL()
+{
+  int i = 0;
+  for(i = 0; i < BUFF_LEN; i++)
+    {
+      commandLine.arg1[i] = 0;
+      commandLine.arg2[i] = 0;
+    }
 }
