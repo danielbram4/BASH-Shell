@@ -43,7 +43,7 @@ int main()
   write(1, "mysh$ ", 6);
   exit = readCL();
 
-  char * const newargv[] = { commandLine.arg1 , commandLine.arg2,NULL };
+  char * const newargv[] = { commandLine.arg1 , commandLine.arg2, NULL};
   
   while(exit == false)
     {
