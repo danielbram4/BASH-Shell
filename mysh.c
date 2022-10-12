@@ -6,10 +6,15 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+
 #define BUFF_LEN 256
+
 typedef int bool;
 #define true 1
 #define false 0
+
+#define READ_END  0
+#define WRITE_END 1
 
 bool readCL();
 void clearCL();
