@@ -4,6 +4,7 @@
 */
 #include <stdio.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
@@ -16,12 +17,7 @@ typedef int bool;
 #define READ_END  0
 #define WRITE_END 1
 
-bool readCL();
-void clearCL();
-bool checkExit(int bytesRead);
-char buffer[BUFF_LEN] = {};
-
-//Represents the Command Line as a structure
+//Represents CommandLine as a structure
 struct CLInput
 {
   char arg1[BUFF_LEN];
@@ -29,43 +25,80 @@ struct CLInput
 
 };typedef struct CLInput CLInput;
 
-CLInput commandLine = {};
+
+//Function Prototypes
+bool checkExit(int bytesRead, char buffer[]);
+void clearCL(CLInput *commandLine);
+bool readCL(char buffer[]);
+void tokenize(char buffer[], CLInput *commandLine);
 
 int main()
 {
+  CLInput commandLine = {};
+  CLInput *cl = &commandLine;
+  char buffer[BUFF_LEN] = {};
+
   int bytesRead;
-  bool exit = false;
+  bool exitFlag = false;
   pid_t pid;
   int status;
+  int pipefd[2];
+  int isCommand;
 
   char * const newenvp[] = { NULL };
 
   write(1, "mysh$ ", 6);
-  exit = readCL();
+  exitFlag = readCL(buffer);
 
   char * const newargv[] = { commandLine.arg1 , commandLine.arg2, NULL};
   
-  while(exit == false)
+  while(exitFlag == false)
     {
       //Process CL **TO DO**
+      if(pipe(pipefd) == -1)
+	{
+	  write(1,"pipe failed\n",12);
+	  exit(EXIT_FAILURE);
+	}
       
       pid = fork();
+
+      if(pid == -1)
+	{
+	  write(1,"fork failed\n",12);
+	  exit(EXIT_FAILURE);
+	}
+      
       if(pid == 0)
 	{
-	  //printf("Hello from child");
-	  execve(commandLine.arg1, newargv, newenvp);
+	  //In Child Process, reading message from pipe
+	  close(pipefd[WRITE_END]); //Close end not being used
+	  bytesRead = read(pipefd[READ_END], buffer, BUFF_LEN-1);
+	  tokenize(buffer, cl);
+	  close(pipefd[READ_END]);
+	  
+	  isCommand = execve(commandLine.arg1, newargv, newenvp);
+	  if(isCommand == -1)
+	    {
+	      write(1, "Not Valid, Try again\n", 21);
+	      exit(1);
+	    }
 	}
       else
 	{
+	  close(pipefd[READ_END]);
+	  write(pipefd[WRITE_END], buffer, BUFF_LEN);
 	  waitpid(pid, &status, 0);
 	  //Reading CL
 	  write(1, "mysh$ ", 6);
-	  exit = readCL();
+	  exitFlag = readCL(buffer);
 	}
     }
   return 0;
 }
-bool readCL()
+
+//Reads CL and Stores it inside the buffer
+bool readCL(char buffer[])
 {
   int bytesRead = 0;
   int exitCond = false;
@@ -73,16 +106,27 @@ bool readCL()
   int i = 0;
   int k = 0;
   char *delimit = buffer;
-  
+
   bytesRead = read(0, buffer, BUFF_LEN);
-  exitCond = checkExit(bytesRead);
-  /*Tokenizes two arguments*/
-  if(exitCond == false)
+  exitCond = checkExit(bytesRead, buffer);
+  return exitCond;
+
+}
+//tokenizes 2 arguments
+void tokenize(char buffer[], CLInput *commandLine)
+{
+  int bytesRead = 0;
+  int endOfString = false;
+  int i = 0;
+  int k = 0;
+  char *delimit = buffer;
+  
+  if(endOfString == false)
     {
-      clearCL();
+      clearCL(commandLine);
       while(*delimit != ' ' && endOfString == false)
 	{
-	  commandLine.arg1[i] = buffer[i];
+	  commandLine->arg1[i] = buffer[i];
 	  i++;
 	  if(buffer[i] != '\n')
 	    {
@@ -93,7 +137,7 @@ bool readCL()
 	      endOfString = true;
 	    }
 	}
-       printf("\nfirst arg is: %s\n", commandLine.arg1);
+       printf("\nfirst arg is: %s\n", commandLine->arg1);
        while(endOfString == false)
 	 {
 	   i++;
@@ -103,16 +147,15 @@ bool readCL()
 	     }
 	   else
 	     {
-	       commandLine.arg2[k] = buffer[i];
+	       commandLine->arg2[k] = buffer[i];
 	       k++;
 	     }
 	 }
       
-      printf("\nsecond arg is: %s\n", commandLine.arg2);
+      printf("\nsecond arg is: %s\n", commandLine->arg2);
     }
-  return exitCond;
 }
-bool checkExit(int bytesRead)
+bool checkExit(int bytesRead, char buffer[])
 {
   int i = 0;
   int sameString = false;
@@ -126,12 +169,12 @@ bool checkExit(int bytesRead)
   return sameString;
 }
 
-void clearCL()
+void clearCL(CLInput *commandLine)
 {
   int i = 0;
   for(i = 0; i < BUFF_LEN; i++)
     {
-      commandLine.arg1[i] = 0;
-      commandLine.arg2[i] = 0;
+      commandLine->arg1[i] = 0;
+      commandLine->arg2[i] = 0;
     }
 }
