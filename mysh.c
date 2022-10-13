@@ -1,8 +1,6 @@
 /*
   Main File.
   By Daniel Bahrami and Scott Charles III
-
-  Testing for push
 */
 #include <stdio.h>
 #include <unistd.h>
