@@ -1,6 +1,3 @@
-# Executable
-mysh
-
 # Prerequisites
 *.d
 
@@ -38,6 +35,7 @@ mysh
 *.i*86
 *.x86_64
 *.hex
+mysh
 
 # Debug files
 *.dSYM/
