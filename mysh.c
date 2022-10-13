@@ -107,8 +107,9 @@ int main()
 	  close(pipefd[READ_END]);
 	  write(pipefd[WRITE_END], buffer, BUFF_LEN);
 
-    if(newargv[2] != '&'){
+    if(*commandLine.arg3 != '&'){
       waitpid(pid, &status, 0);
+      printf("WAITING");
     }
 	  
 	  //Reading CL
@@ -122,7 +123,6 @@ int main()
 
 //Reads CL and Stores it inside the buffer
 bool readCL(char buffer[])
-
 {
   int bytesRead = 0;
   int exitCond = false;
