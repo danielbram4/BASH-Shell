@@ -4,10 +4,7 @@
 */
 #include <stdio.h>
 #include <unistd.h>
-<<<<<<< HEAD
 #include <stdlib.h>
-=======
->>>>>>> 1d27fac1d6911d8f63e0b6dadc6b33bab201a6e4
 #include <sys/types.h>
 #include <sys/wait.h>
 
@@ -20,25 +17,13 @@ typedef int bool;
 #define READ_END  0
 #define WRITE_END 1
 
-<<<<<<< HEAD
 //Represents CommandLine as a structure
-=======
-bool readCL();
-void clearCL();
-bool checkExit(int bytesRead);
-char buffer[BUFF_LEN] = {};
-
-//Represents the Command Line as a structure
->>>>>>> 1d27fac1d6911d8f63e0b6dadc6b33bab201a6e4
 struct CLInput
 {
   char arg1[BUFF_LEN];
   char arg2[BUFF_LEN];
-<<<<<<< HEAD
   char arg3[BUFF_LEN];
-
 };typedef struct CLInput CLInput;
-
 
 //Function Prototypes
 bool checkExit(int bytesRead, char buffer[]);
@@ -121,58 +106,23 @@ int main()
 	{
 	  close(pipefd[READ_END]);
 	  write(pipefd[WRITE_END], buffer, BUFF_LEN);
-	  waitpid(pid, &status, 0);
+
+    if(newargv[2] != '&'){
+      waitpid(pid, &status, 0);
+    }
+	  
 	  //Reading CL
 	  write(1, "mysh$ ", 6);
 	  exitFlag = readCL(buffer);
-=======
 
-};typedef struct CLInput CLInput;
-
-CLInput commandLine = {};
-
-int main()
-{
-  int bytesRead;
-  bool exit = false;
-  pid_t pid;
-  int status;
-
-  char * const newenvp[] = { NULL };
-
-  write(1, "mysh$ ", 6);
-  exit = readCL();
-
-  char * const newargv[] = { commandLine.arg1 , commandLine.arg2,NULL };
-  
-  while(exit == false)
-    {
-      //Process CL **TO DO**
-      
-      pid = fork();
-      if(pid == 0)
-	{
-	  //printf("Hello from child");
-	  execve(commandLine.arg1, newargv, newenvp);
-	}
-      else
-	{
-	  waitpid(pid, &status, 0);
-	  //Reading CL
-	  write(1, "mysh$ ", 6);
-	  exit = readCL();
->>>>>>> 1d27fac1d6911d8f63e0b6dadc6b33bab201a6e4
 	}
     }
   return 0;
 }
-<<<<<<< HEAD
 
 //Reads CL and Stores it inside the buffer
 bool readCL(char buffer[])
-=======
-bool readCL()
->>>>>>> 1d27fac1d6911d8f63e0b6dadc6b33bab201a6e4
+
 {
   int bytesRead = 0;
   int exitCond = false;
@@ -180,7 +130,6 @@ bool readCL()
   int i = 0;
   int k = 0;
   char *delimit = buffer;
-<<<<<<< HEAD
 
   bytesRead = read(0, buffer, BUFF_LEN);
   exitCond = checkExit(bytesRead, buffer);
@@ -205,18 +154,7 @@ int tokenize(char buffer[], CLInput *commandLine)
       while(*delimit != ' ' && endOfString == false)
 	{
 	  commandLine->arg1[i] = buffer[i];
-=======
-  
-  bytesRead = read(0, buffer, BUFF_LEN);
-  exitCond = checkExit(bytesRead);
-  /*Tokenizes two arguments*/
-  if(exitCond == false)
-    {
-      clearCL();
-      while(*delimit != ' ' && endOfString == false)
-	{
-	  commandLine.arg1[i] = buffer[i];
->>>>>>> 1d27fac1d6911d8f63e0b6dadc6b33bab201a6e4
+
 	  i++;
 	  if(buffer[i] != '\n')
 	    {
@@ -227,7 +165,7 @@ int tokenize(char buffer[], CLInput *commandLine)
 	      endOfString = true;
 	    }
 	}
-<<<<<<< HEAD
+
       printf("\nfirst arg is: %s\n", commandLine->arg1); //testing
       if(endOfString == false)
 	{
@@ -270,29 +208,7 @@ int tokenize(char buffer[], CLInput *commandLine)
   return numOfArgs;
 }
 bool checkExit(int bytesRead, char buffer[])
-=======
-       printf("\nfirst arg is: %s\n", commandLine.arg1);
-       while(endOfString == false)
-	 {
-	   i++;
-	   if(buffer[i] == '\n')
-	     {
-	       endOfString = true;
-	     }
-	   else
-	     {
-	       commandLine.arg2[k] = buffer[i];
-	       k++;
-	     }
-	 }
-      
-      printf("\nsecond arg is: %s\n", commandLine.arg2);
-    }
-  return exitCond;
-}
 
-bool checkExit(int bytesRead)
->>>>>>> 1d27fac1d6911d8f63e0b6dadc6b33bab201a6e4
 {
   int i = 0;
   int sameString = false;
@@ -306,24 +222,15 @@ bool checkExit(int bytesRead)
   return sameString;
 }
 
-<<<<<<< HEAD
 void clearCL(CLInput *commandLine)
-=======
-void clearCL()
->>>>>>> 1d27fac1d6911d8f63e0b6dadc6b33bab201a6e4
+
 {
   int i = 0;
   for(i = 0; i < BUFF_LEN; i++)
     {
-<<<<<<< HEAD
       commandLine->arg1[i] = 0;
       commandLine->arg2[i] = 0;
     }
 }
 
-=======
-      commandLine.arg1[i] = 0;
-      commandLine.arg2[i] = 0;
-    }
-}
->>>>>>> 1d27fac1d6911d8f63e0b6dadc6b33bab201a6e4
+
