@@ -112,6 +112,7 @@ bool readCL()
     }
   return exitCond;
 }
+
 bool checkExit(int bytesRead)
 {
   int i = 0;
