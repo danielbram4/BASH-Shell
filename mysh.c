@@ -22,6 +22,7 @@ struct CLInput
 {
   char arg1[BUFF_LEN];
   char arg2[BUFF_LEN];
+  char arg3[BUFF_LEN];
 
 };typedef struct CLInput CLInput;
 
@@ -30,12 +31,13 @@ struct CLInput
 bool checkExit(int bytesRead, char buffer[]);
 void clearCL(CLInput *commandLine);
 bool readCL(char buffer[]);
-void tokenize(char buffer[], CLInput *commandLine);
+int tokenize(char buffer[], CLInput *commandLine);
 
 int main()
 {
   CLInput commandLine = {};
   CLInput *cl = &commandLine;
+  
   char buffer[BUFF_LEN] = {};
 
   int bytesRead;
@@ -44,13 +46,15 @@ int main()
   int status;
   int pipefd[2];
   int isCommand;
+  int numberOfArgs = 0;
 
   char * const newenvp[] = { NULL };
+
 
   write(1, "mysh$ ", 6);
   exitFlag = readCL(buffer);
 
-  char * const newargv[] = { commandLine.arg1 , commandLine.arg2, NULL};
+  char * newargv[] = { NULL, NULL, NULL};
   
   while(exitFlag == false)
     {
@@ -74,9 +78,25 @@ int main()
 	  //In Child Process, reading message from pipe
 	  close(pipefd[WRITE_END]); //Close end not being used
 	  bytesRead = read(pipefd[READ_END], buffer, BUFF_LEN-1);
-	  tokenize(buffer, cl);
+	  numberOfArgs = tokenize(buffer, cl);
 	  close(pipefd[READ_END]);
-	  
+	  if(numberOfArgs == 1)
+	    {
+	      newargv[0] = commandLine.arg1;
+	      
+	    }
+	  else if (numberOfArgs == 2)
+	    {
+	      newargv[0] = commandLine.arg1;
+	      newargv[1] = commandLine.arg2;
+	    }
+	  else
+	    {
+	      newargv[0] = commandLine.arg1;
+              newargv[1] = commandLine.arg2;
+	      newargv[2] = commandLine.arg3;
+	    }
+
 	  isCommand = execve(commandLine.arg1, newargv, newenvp);
 	  if(isCommand == -1)
 	    {
@@ -112,18 +132,21 @@ bool readCL(char buffer[])
   return exitCond;
 
 }
-//tokenizes 2 arguments
-void tokenize(char buffer[], CLInput *commandLine)
+//tokenizes 3 arguments from command line
+int tokenize(char buffer[], CLInput *commandLine)
 {
   int bytesRead = 0;
   int endOfString = false;
   int i = 0;
   int k = 0;
+  int f = 0;
   char *delimit = buffer;
+  int numOfArgs = 0;
   
-  if(endOfString == false)
+  if(buffer[0] != '\n')
     {
-      clearCL(commandLine);
+      numOfArgs++;
+      clearCL(commandLine);      
       while(*delimit != ' ' && endOfString == false)
 	{
 	  commandLine->arg1[i] = buffer[i];
@@ -137,23 +160,46 @@ void tokenize(char buffer[], CLInput *commandLine)
 	      endOfString = true;
 	    }
 	}
-       printf("\nfirst arg is: %s\n", commandLine->arg1);
-       while(endOfString == false)
-	 {
-	   i++;
-	   if(buffer[i] == '\n')
-	     {
-	       endOfString = true;
-	     }
-	   else
-	     {
-	       commandLine->arg2[k] = buffer[i];
-	       k++;
-	     }
-	 }
+      printf("\nfirst arg is: %s\n", commandLine->arg1); //testing
+      if(endOfString == false)
+	{
+	  numOfArgs++;
+	  *delimit = buffer[++i];
+	}
+      while(*delimit != ' ' && endOfString == false)
+        {
+          commandLine->arg2[f] = buffer[i];
+          i++;
+	  f++;
+          if(buffer[i] != '\n')
+            {
+              *delimit = buffer[i];
+            }
+          else
+            {
+              endOfString = true;
+            }
+        }
+      if(endOfString == false)
+	numOfArgs++;
+      while(endOfString == false)
+	{
+	  i++;
+	  if(buffer[i] == '\n')
+	    {
+	      endOfString = true;
+	    }
+	  else
+	    {
+	      commandLine->arg3[k] = buffer[i];
+	      k++;
+	    }
+	}
       
       printf("\nsecond arg is: %s\n", commandLine->arg2);
+      printf("\nthird arg is: %s\n", commandLine->arg3);
     }
+  return numOfArgs;
 }
 bool checkExit(int bytesRead, char buffer[])
 {
