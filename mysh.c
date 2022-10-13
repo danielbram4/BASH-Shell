@@ -40,6 +40,7 @@ int main()
 
   int bytesRead;
   bool exitFlag = false;
+  bool background = false;
   pid_t pid;
   int status;
   int pipefd[2];
@@ -54,68 +55,76 @@ int main()
 
   char * newargv[] = { NULL, NULL, NULL};
   
-  while(exitFlag == false)
-    {
+  while(exitFlag == false) {
       //Process CL **TO DO**
-      if(pipe(pipefd) == -1)
-	{
-	  write(1,"pipe failed\n",12);
-	  exit(EXIT_FAILURE);
-	}
+      if(pipe(pipefd) == -1) {
+	      write(1,"pipe failed\n",12);
+	      exit(EXIT_FAILURE);
+	    }
       
       pid = fork();
 
       if(pid == -1)
-	{
-	  write(1,"fork failed\n",12);
-	  exit(EXIT_FAILURE);
-	}
+	    {
+	      write(1,"fork failed\n",12);
+	      exit(EXIT_FAILURE);
+	    }
       
-      if(pid == 0)
-	{
-	  //In Child Process, reading message from pipe
-	  close(pipefd[WRITE_END]); //Close end not being used
-	  bytesRead = read(pipefd[READ_END], buffer, BUFF_LEN-1);
-	  numberOfArgs = tokenize(buffer, cl);
-	  close(pipefd[READ_END]);
-	  if(numberOfArgs == 1)
-	    {
-	      newargv[0] = commandLine.arg1;
+      if(pid == 0) {
+	      //In Child Process, reading message from pipe
+	      close(pipefd[WRITE_END]); //Close end not being used
+	      bytesRead = read(pipefd[READ_END], buffer, BUFF_LEN-1);
+	      numberOfArgs = tokenize(buffer, cl);
+        printf("Number of Args: %d", numberOfArgs);
+	      close(pipefd[READ_END]);
+	      if(numberOfArgs == 1)
+	      {
+	        newargv[0] = commandLine.arg1;
 	      
-	    }
-	  else if (numberOfArgs == 2)
-	    {
+	      }
+	      else if (numberOfArgs == 2)
+	      {
+	        newargv[0] = commandLine.arg1;
+          if(commandLine.arg2 == "&"){
+            newargv[1] = NULL;
+            background = true;
+          } else {
+            newargv[1] = commandLine.arg2;
+          } 
+	      } else {
 	      newargv[0] = commandLine.arg1;
-	      newargv[1] = commandLine.arg2;
-	    }
-	  else
-	    {
-	      newargv[0] = commandLine.arg1;
-              newargv[1] = commandLine.arg2;
-	      newargv[2] = commandLine.arg3;
+        newargv[1] = commandLine.arg2;
+        if(commandLine.arg3 == "&"){
+          background = true;
+          newargv[2] = NULL;
+        } else {
+          newargv[2] = commandLine.arg3;
+        }
+	      
+        printf("N1: %s\n", newargv[1]);
+        printf("N2: %s\n", newargv[2]);
+        
 	    }
 
 	  isCommand = execve(commandLine.arg1, newargv, newenvp);
-	  if(isCommand == -1)
-	    {
+	  if(isCommand == -1) {
 	      write(1, "Not Valid, Try again\n", 21);
 	      exit(1);
 	    }
 	}
-      else
+  else
 	{
 	  close(pipefd[READ_END]);
 	  write(pipefd[WRITE_END], buffer, BUFF_LEN);
 
-    if(*commandLine.arg3 != '&'){
-      waitpid(pid, &status, 0);
-      printf("WAITING");
-    }
+    // if(background == true){
+    //   waitpid(pid, &status, 0);
+    // }
+    waitpid(pid, &status, 0);
 	  
 	  //Reading CL
 	  write(1, "mysh$ ", 6);
 	  exitFlag = readCL(buffer);
-
 	}
     }
   return 0;
@@ -152,18 +161,17 @@ int tokenize(char buffer[], CLInput *commandLine)
       numOfArgs++;
       clearCL(commandLine);      
       while(*delimit != ' ' && endOfString == false)
-	{
-	  commandLine->arg1[i] = buffer[i];
+	    {
+	      commandLine->arg1[i] = buffer[i];
 
-	  i++;
-	  if(buffer[i] != '\n')
-	    {
-	      *delimit = buffer[i];
-	    }
-	  else
-	    {
-	      endOfString = true;
-	    }
+	      i++;
+	      if(buffer[i] != '\n')
+	        {
+	          *delimit = buffer[i];
+	        } else
+	      {
+	        endOfString = true;
+	      }
 	}
 
       printf("\nfirst arg is: %s\n", commandLine->arg1); //testing
@@ -230,6 +238,7 @@ void clearCL(CLInput *commandLine)
     {
       commandLine->arg1[i] = 0;
       commandLine->arg2[i] = 0;
+      commandLine->arg3[i] = 0;
     }
 }
 
