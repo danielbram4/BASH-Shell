@@ -1,0 +1,11 @@
+makefile
+makefile~
+mysh
+mysh.c
+mysh.c~
+mysh.h
+mysh.o
+t.txt
+t.txt~
+t2.txt
+t2.txt~

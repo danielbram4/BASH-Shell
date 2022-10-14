@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #define BUFF_LEN 256
 
@@ -23,8 +25,8 @@ struct CLInput
   char arg1[BUFF_LEN];
   char arg2[BUFF_LEN];
   char arg3[BUFF_LEN];
-  //char arg4[BUFF_LEN];
-  //  char arg5[BUFF_LEN];
+  char arg4[BUFF_LEN];
+  char arg5[BUFF_LEN];
 };typedef struct CLInput CLInput;
 
 //Function Prototypes
@@ -36,6 +38,10 @@ int tok(char buffer[], char arg[], int i, int *numOfArgs);
 void clearArg(char arg[]);
 int my_strcmp(char *s1, char *s2);
 bool isBackground(int numOfArgs, CLInput *commandLine, char * newargv[]);
+bool isPipeline(int numberOfArgs, CLInput *commandLine, char * argv1[], char * argv2[]);
+void clearArgs(char * newargv[], char * newargv2[]);
+void processPipe(char * argv1[], char * argv2[]);
+bool isRedirection(CLInput *commandLine, bool *in, bool *out);
 
 int main()
 {
@@ -55,6 +61,10 @@ int main()
   bool background = false;
   int comp;
   int argumentNumber;
+  int isPipe = 0;
+  bool redirection = false;
+  bool in = false;
+  bool out = false;
 
   char * const newenvp[] = { NULL };
 
@@ -62,64 +72,131 @@ int main()
   write(1, "mysh$ ", 6);
   exitFlag = readCL(buffer);
 
-  char * newargv[] = { NULL, NULL, NULL,NULL};
+  char * newargv[6] = { NULL, NULL, NULL,NULL, NULL,NULL};
+  char * newargv2[6] = { NULL, NULL, NULL,NULL, NULL,NULL};
   
   while(exitFlag == false)
     {
+      clearArgs(newargv, newargv2);
       background = false;
-      //Process CL **TO DO**
-      if(pipe(pipefd) == -1)
-	{
-	  write(1,"pipe failed\n",12);
-	  exit(EXIT_FAILURE);
-	}
-      
 
       numberOfArgs = tokenize(buffer,cl);
       printf("Number of args: %i\n", numberOfArgs);
       background = isBackground(numberOfArgs, cl, newargv);
-      
-      pid = fork();
-      
-      if(pid == -1)
+      isPipe = isPipeline(numberOfArgs, cl, newargv, newargv2);
+      printf("Is a Pipe %d\n", isPipe);
+
+      if(isPipe == false)
 	{
-	  write(1,"fork failed\n",12);
-	  exit(EXIT_FAILURE);
-	}
-      
-      if(pid == 0)
-	{
-	  if(background == true)
+	  pid = fork();
+	  
+	  if(pid == -1)
 	    {
-	      setpgid(0,0);
+	      write(1,"fork failed\n",12);
+	      exit(EXIT_FAILURE);
 	    }
 
-	  execve(commandLine.arg1, newargv, newenvp);
-	  if(isCommand == -1)
+	  
+	  if(pid == 0)
 	    {
-	      write(1, "Not Valid, Try again\n", 21);
-	      exit(1);
+	      redirection =  isRedirection(cl, &in, &out);
+	      if(in)
+		{
+		  newargv[1] = NULL;
+		  newargv[2] = NULL;
+		  int fd0 = open(commandLine.arg3, O_RDONLY);
+		  dup2(fd0,0);
+		  close(fd0);
+		}
+	      if(out)
+		{
+		  newargv[1] = NULL;
+                  newargv[2] = NULL;
+		  int fd1 = open(commandLine.arg3 ,O_WRONLY);
+		  dup2(fd1, 1);
+		  close(fd1);
+		}
+	      
+	      if(background == true)
+		{
+		  setpgid(0,0);
+		}
+	      
+	      isCommand = execve(commandLine.arg1, newargv, newenvp);
+	      if(isCommand == -1)
+		{
+		  write(1, "Not Valid, Try again\n", 21);
+		  exit(1);
+		}
+	    }
+	  else
+	    {
+	      //Parent Process       
+	      if(background == false)
+		{
+		  waitpid(pid, &status, 0);
+		}
+	      else
+		{
+		  waitpid(pid, &status, WNOHANG);
+		}
 	    }
 	}
       else
 	{
-	  //Parent Process       
-	  if(background == false)
-	    {
-	      waitpid(pid, &status, 0);
-	    }
-	  else
-	    {
-	      waitpid(pid, &status, WNOHANG);
-	    }
+	  //process pipe
+	  printf("Processed Pipe!\n");
+	  processPipe(newargv, newargv2);
+	  //	  printf("Processed Pipe!\n");
 	}
+      
       write(1, "mysh$ ", 6);
       exitFlag = readCL(buffer);
     }
   return 0;
 }
-
+bool isRedirection(CLInput *commandLine, bool *in, bool *out)
+{
+  char inFlag[BUFF_LEN] = {"<"};
+  char outFlag[BUFF_LEN] = {">"};
+  int comp = 0;
+  bool isRedir;
+  *in = false;
+  *out = false;
+  comp = my_strcmp(inFlag,commandLine->arg2);
+  if(comp == 0)
+    {
+      // < process
+      isRedir = true;
+      *in = true;
+    }
+  else if (my_strcmp(outFlag,commandLine->arg2) == 0)
+    {
+      // > process
+      isRedir = true;
+      *out = true;
+    }
+  else
+    {
+      isRedir = false;
+    }
+}
 //Reads CL and Stores it inside the buffer
+void clearArgs(char * newargv[], char * newargv2[])
+{
+  newargv[0] = NULL;
+  newargv[1] = NULL;
+  newargv[2] = NULL;
+  newargv[3] = NULL;
+  newargv[4] = NULL;
+  
+  newargv2[0] = NULL;
+  newargv2[1] = NULL;
+  newargv2[2] = NULL;
+  newargv2[3] = NULL;
+  newargv2[4] = NULL;
+  
+}
 bool readCL(char buffer[])
 {
   int bytesRead = 0;
@@ -148,15 +225,141 @@ int tokenize(char buffer[], CLInput *commandLine)
       i = tok(buffer, commandLine->arg1, i, &numOfArgs);
       i = tok(buffer, commandLine->arg2, i, &numOfArgs);
       i = tok(buffer, commandLine->arg3, i, &numOfArgs);
-      //i = tok(buffer, commandLine->arg4, i, &numOfArgs);
-      //i = tok(buffer, commandLine->arg5, i, &numOfArgs);
+      i = tok(buffer, commandLine->arg4, i, &numOfArgs);
+      i = tok(buffer, commandLine->arg5, i, &numOfArgs);
       
       printf("\nfirst arg is: %s\n", commandLine->arg1);
       printf("\nSecond arg is: %s\n", commandLine->arg2);
       printf("\nThird arg is: %s\n", commandLine->arg3);
+      printf("\nFourth arg is: %s\n", commandLine->arg4);
+      printf("\nFifth arg is: %s\n", commandLine->arg5);
+
     }
   return numOfArgs;
 }
+void processPipe(char * newargv[], char * newargv2[])
+{
+  int pipefd[2];
+  char * const envp[] = {NULL};
+  int pid1, pid2;
+  int child_status;
+  int isCommand;
+
+  char * const argv1[] = {newargv[0], newargv[1], NULL };
+  char * const argv2[] = {newargv2[0], newargv2[1], NULL };
+
+  pipe(pipefd);
+  pid1 = fork();
+  if(pid1 == 0)
+    {
+      close(pipefd[READ_END]);
+      dup2(pipefd[WRITE_END], 1);
+      isCommand = execve(argv1[0], argv1, envp);
+      if(isCommand == -1)
+	{
+	  write(1, "Not Valid, Try again\n", 21);
+	  exit(1);
+	}
+    }
+  close(pipefd[WRITE_END]);
+  pid2 = fork();
+
+  if (pid2 == 0)
+    {
+      dup2(pipefd[READ_END], 0);
+      isCommand = execve(argv2[0],argv2,envp);
+      if(isCommand == -1)
+	{
+	  write(1, "Not Valid, Try again\n", 21);
+	  exit(1);
+	}
+    }
+  close(pipefd[READ_END]);
+  waitpid(pid1, &child_status, 0);
+  waitpid(pid2, &child_status, 0);
+}
+bool isPipeline(int numberOfArgs, CLInput *commandLine, char * newargv[], char * newargv2[])
+{
+  bool isPipe = false;
+  char pipelineFlag[BUFF_LEN] = {"|"};
+  int comp = 0;
+
+  if(numberOfArgs == 3)
+    {
+      comp = my_strcmp(pipelineFlag,commandLine->arg2);
+      if(comp == 0)
+	{
+	  clearArgs(newargv, newargv2);
+	  newargv[0] = commandLine->arg1;
+	  /*newargv[1] = NULL;
+	  newargv[2] = NULL;
+	  newargv[3] = NULL;
+	  newargv[4] = NULL;
+	  newargv[5] = NULL;*/
+	  newargv2[0] = commandLine->arg3;
+	  isPipe = true;
+	  //*commandLine->arg2 = NULL;
+	}
+    }
+  if(numberOfArgs == 4)
+    {
+      comp = my_strcmp(pipelineFlag,commandLine->arg2);
+      if(comp == 0)
+        {
+	  clearArgs(newargv, newargv2);
+          newargv[0] = commandLine->arg1;
+          newargv2[0] = commandLine->arg3;
+	  newargv2[1] = commandLine->arg4;
+          isPipe = true;
+	  //	  *commandLine->arg2 = NULL;
+        }
+      else
+	{
+	  comp = my_strcmp(pipelineFlag,commandLine->arg3);
+	  if(comp == 0)
+	    {
+	      clearArgs(newargv, newargv2);
+	      newargv[0] = commandLine->arg1;
+	      newargv[1] = commandLine->arg2;
+	      newargv2[0] = commandLine->arg4;
+	      isPipe = true;
+	      // *commandLine->arg3 = NULL;
+	    }
+	}
+    }
+  if(numberOfArgs == 5)
+    {
+      comp = my_strcmp(pipelineFlag,commandLine->arg3);
+      if(comp == 0)
+        {
+	  clearArgs(newargv, newargv2);
+          newargv[0] = commandLine->arg1;
+	  newargv[1] = commandLine->arg2;
+          newargv2[0] = commandLine->arg4;
+	  newargv2[1] = commandLine->arg5;
+          isPipe = true;
+	  //	  *commandLine->arg3 = NULL;
+        }
+    }
+  /*
+  if(isPipe == true)
+    {
+      newargv[0] = NULL;
+      newargv[1] = NULL;
+      newargv[2] = NULL;
+      newargv[3] = NULL;
+      newargv[4] = NULL;
+
+      newargv2[0] = NULL;
+      newargv2[1] = NULL;
+      newargv2[2] = NULL;
+      newargv2[3] = NULL;
+      newargv2[4] = NULL;
+    }
+  */
+  return isPipe;
+}
+
 bool isBackground(int numberOfArgs, CLInput *commandLine, char * newargv[])
 {
   int argumentNumber;
