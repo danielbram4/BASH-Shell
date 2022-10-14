@@ -23,8 +23,8 @@ struct CLInput
   char arg1[BUFF_LEN];
   char arg2[BUFF_LEN];
   char arg3[BUFF_LEN];
-  char arg4[BUFF_LEN];
-  char arg5[BUFF_LEN];
+  //char arg4[BUFF_LEN];
+  //  char arg5[BUFF_LEN];
 };typedef struct CLInput CLInput;
 
 //Function Prototypes
@@ -34,6 +34,8 @@ bool readCL(char buffer[]);
 int tokenize(char buffer[], CLInput *commandLine);
 int tok(char buffer[], char arg[], int i, int *numOfArgs);
 void clearArg(char arg[]);
+int my_strcmp(char *s1, char *s2);
+bool isBackground(int numOfArgs, CLInput *commandLine, char * newargv[]);
 
 int main()
 {
@@ -50,6 +52,9 @@ int main()
   int pipefd[2];
   int isCommand;
   int numberOfArgs = 0;
+  bool background = false;
+  int comp;
+  int argumentNumber;
 
   char * const newenvp[] = { NULL };
 
@@ -57,11 +62,11 @@ int main()
   write(1, "mysh$ ", 6);
   exitFlag = readCL(buffer);
 
-  char * newargv[] = { NULL, NULL, NULL, NULL};
-  char * newargv2[] = {NULL,NULL,NULL};
+  char * newargv[] = { NULL, NULL, NULL,NULL};
   
   while(exitFlag == false)
     {
+      background = false;
       //Process CL **TO DO**
       if(pipe(pipefd) == -1)
 	{
@@ -69,8 +74,13 @@ int main()
 	  exit(EXIT_FAILURE);
 	}
       
-      pid = fork();
 
+      numberOfArgs = tokenize(buffer,cl);
+      printf("Number of args: %i\n", numberOfArgs);
+      background = isBackground(numberOfArgs, cl, newargv);
+      
+      pid = fork();
+      
       if(pid == -1)
 	{
 	  write(1,"fork failed\n",12);
@@ -79,55 +89,22 @@ int main()
       
       if(pid == 0)
 	{
-	  //In Child Process, reading message from pipe
-	  close(pipefd[WRITE_END]); //Close end not being used
-	  bytesRead = read(pipefd[READ_END], buffer, BUFF_LEN-1);
-	  numberOfArgs = tokenize(buffer, cl);
-	  close(pipefd[READ_END]);
-	  
-	  if(numberOfArgs == 1)
-	    {
-	      newargv[0] = commandLine.arg1;
-	    }
-	  else if (numberOfArgs == 2)
-	    {
-	      newargv[0] = commandLine.arg1;
-	      newargv[1] = commandLine.arg2;
-	    }
-	  else
-	    {
-	      newargv[0] = commandLine.arg1;
-              newargv[1] = commandLine.arg2;
-	      newargv[2] = commandLine.arg3;
-	      newargv[3] = commandLine.arg4;
-	      newargv[4] = commandLine.arg5;
-	    }
-	  if(*commandLine.arg3 == '&')
+	  if(background == true)
 	    {
 	      setpgid(0,0);
-	      execve(commandLine.arg1, newargv, newenvp);
-	      if(isCommand == -1)
-                {
-                  write(1, "Not Valid, Try again\n", 21);
-                  exit(1);
-                }
 	    }
-	  else
+
+	  execve(commandLine.arg1, newargv, newenvp);
+	  if(isCommand == -1)
 	    {
-	      isCommand = execve(commandLine.arg1, newargv, newenvp);
-	      if(isCommand == -1)
-		{
-		  write(1, "Not Valid, Try again\n", 21);
-		  exit(1);
-		}
+	      write(1, "Not Valid, Try again\n", 21);
+	      exit(1);
 	    }
-	  
 	}
       else
 	{
-	  close(pipefd[READ_END]);
-	  write(pipefd[WRITE_END], buffer, BUFF_LEN);
-	  if(*commandLine.arg3 == '&')
+	  //Parent Process       
+	  if(background == false)
 	    {
 	      waitpid(pid, &status, 0);
 	    }
@@ -135,14 +112,9 @@ int main()
 	    {
 	      waitpid(pid, &status, WNOHANG);
 	    }
-	    //printf("WAITING");
-	    //}
-	  
-	  //Reading CL
-	  write(1, "mysh$ ", 6);
-	  exitFlag = readCL(buffer);
-    
 	}
+      write(1, "mysh$ ", 6);
+      exitFlag = readCL(buffer);
     }
   return 0;
 }
@@ -172,13 +144,12 @@ int tokenize(char buffer[], CLInput *commandLine)
   
   if(buffer[0] != '\n')
     {
-      numOfArgs++;
       clearCL(commandLine);
       i = tok(buffer, commandLine->arg1, i, &numOfArgs);
       i = tok(buffer, commandLine->arg2, i, &numOfArgs);
       i = tok(buffer, commandLine->arg3, i, &numOfArgs);
-      i = tok(buffer, commandLine->arg4, i, &numOfArgs);
-      i = tok(buffer, commandLine->arg5, i, &numOfArgs);
+      //i = tok(buffer, commandLine->arg4, i, &numOfArgs);
+      //i = tok(buffer, commandLine->arg5, i, &numOfArgs);
       
       printf("\nfirst arg is: %s\n", commandLine->arg1);
       printf("\nSecond arg is: %s\n", commandLine->arg2);
@@ -186,7 +157,48 @@ int tokenize(char buffer[], CLInput *commandLine)
     }
   return numOfArgs;
 }
-
+bool isBackground(int numberOfArgs, CLInput *commandLine, char * newargv[])
+{
+  int argumentNumber;
+  bool background = false;
+  char backgroundFlag[BUFF_LEN] = {"&"};
+  int comp = 0;
+  if(numberOfArgs == 1)
+    {
+      newargv[0] = commandLine->arg1;
+      newargv[1] = NULL;
+    }
+  else if (numberOfArgs == 2)
+    {
+      newargv[0] = commandLine->arg1;
+      newargv[1] = commandLine->arg2;
+      newargv[2] = NULL;
+      comp = my_strcmp(backgroundFlag,commandLine->arg2);
+      if(comp == 0)
+	{
+	  background = true;
+	  argumentNumber = 2;
+	  newargv[1] = NULL;
+	}
+    }
+  else
+    {
+      newargv[0] = commandLine->arg1;
+      newargv[1] = commandLine->arg2;
+      newargv[2] = commandLine->arg3;
+      comp = my_strcmp(backgroundFlag,commandLine->arg3);
+      if(comp == 0)
+	{
+	  background = true;
+	  argumentNumber = 3;
+	  newargv[2] = NULL;
+	}
+      
+      // newargv[3] = commandLine.arg4;
+      //newargv[4] = commandLine.arg5;
+    }
+  return background;
+}
 int tok(char buffer[], char arg[], int i, int *numOfArgs)
 {
   int bytesRead = 0;
@@ -195,7 +207,13 @@ int tok(char buffer[], char arg[], int i, int *numOfArgs)
   int k = 0;
   clearArg(arg);
   if(buffer[i] == '\n')
-    endOfString = true;
+    {
+      endOfString = true;
+    }
+  else
+    {
+      *numOfArgs = *numOfArgs + 1;
+    }
   while(*delimit != ' ' && endOfString == false)
     {
       arg[k] = buffer[i];
@@ -214,7 +232,6 @@ int tok(char buffer[], char arg[], int i, int *numOfArgs)
   
   if(endOfString == false)
     {
-      *numOfArgs = *numOfArgs + 1;
       i++;
       *delimit = buffer[i];
     }
@@ -254,4 +271,17 @@ void clearArg(char arg[])
     {
       arg[i] = 0;
     }
+}
+int my_strcmp(char *s1, char *s2)
+{
+  int charCompareStatus = 0;
+  while ((*s1 != '\0' && *s2 != '\0') && *s1 == *s2)
+  {
+    s1++;
+    s2++;
+  }
+  // compare the mismatching character
+  charCompareStatus = (*s1 == *s2) ? 0 : (*s1 > *s2) ? 1
+                                                     : -1;
+  return charCompareStatus;
 }
