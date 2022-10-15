@@ -42,7 +42,7 @@ bool isBackground(int numOfArgs, CLInput *commandLine, char *newargv[]);
 bool isPipeline(int numberOfArgs, CLInput *commandLine, char *argv1[], char *argv2[]);
 void clearArgs(char *newargv[], char *newargv2[]);
 void processPipe(char *argv1[], char *argv2[]);
-bool isRedirection(CLInput *commandLine, bool *in, bool *out);
+bool isRedirection(CLInput *commandLine, bool *in, bool *out, int numberOfArgs);
 
 int main()
 {
@@ -98,23 +98,42 @@ int main()
 
       if (pid == 0)
       {
-        redirection = isRedirection(cl, &in, &out);
+        redirection = isRedirection(cl, &in, &out, numberOfArgs);
         if (in)
-        {
-          newargv[1] = NULL;
-          newargv[2] = NULL;
-          int fd0 = open(commandLine.arg3, O_RDONLY);
-          dup2(fd0, 0);
-          close(fd0);
-        }
+	  {
+	    newargv[1] = NULL;
+	    newargv[2] = NULL;
+	    int fd0 = open(commandLine.arg3, O_RDONLY);
+	    dup2(fd0, 0);
+	    close(fd0);
+	  }
         if (out)
-        {
-          newargv[1] = NULL;
-          newargv[2] = NULL;
-          int fd1 = open(commandLine.arg3, O_WRONLY);
-          dup2(fd1, 1);
-          close(fd1);
-        }
+	  {
+	    if(numberOfArgs == 4)
+	      {
+		newargv[2] = NULL;
+		newargv[3] = NULL;
+		int fd1 = open(commandLine.arg4, O_WRONLY);
+		dup2(fd1,1);
+		close(fd1);
+	      }
+	    else
+	      {
+		newargv[1] = NULL;
+		newargv[2] = NULL;
+		int fd1 = open(commandLine.arg3, O_WRONLY);
+		dup2(fd1,1);
+		close(fd1);
+	      }
+	    
+	    /*
+	      newargv[1] = NULL;
+	      
+	      newargv[2] = NULL;
+	      int fd1 = open(commandLine.arg3, O_WRONLY);
+	      dup2(fd1, 1);
+	      close(fd1);*/
+	  }
 
         if (background == true)
         {
@@ -154,7 +173,7 @@ int main()
   }
   return 0;
 }
-bool isRedirection(CLInput *commandLine, bool *in, bool *out)
+bool isRedirection(CLInput *commandLine, bool *in, bool *out, int numberOfArgs)
 {
   char inFlag[BUFF_LEN] = {"<"};
   char outFlag[BUFF_LEN] = {">"};
@@ -162,23 +181,46 @@ bool isRedirection(CLInput *commandLine, bool *in, bool *out)
   bool isRedir;
   *in = false;
   *out = false;
-  comp = my_strcmp(inFlag, commandLine->arg2);
-  if (comp == 0)
-  {
-    // < process
-    isRedir = true;
-    *in = true;
-  }
-  else if (my_strcmp(outFlag, commandLine->arg2) == 0)
-  {
-    // > process
-    isRedir = true;
+  if(numberOfArgs == 3)
+    {
+      comp = my_strcmp(inFlag, commandLine->arg2);
+      if (comp == 0)
+	{
+	  // < process
+	  isRedir = true;
+	  *in = true;
+	}
+      else if (my_strcmp(outFlag, commandLine->arg2) == 0)
+	{
+	  // > process
+	  isRedir = true;
     *out = true;
-  }
-  else
-  {
-    isRedir = false;
-  }
+	}
+      else
+	{
+	  isRedir = false;
+	}
+    }
+  else if(numberOfArgs == 4)
+    {
+      comp = my_strcmp(inFlag, commandLine->arg3);
+      if (comp == 0)
+        {
+          // < process
+          isRedir = true;
+          *in = true;
+        }
+      else if (my_strcmp(outFlag, commandLine->arg3) == 0)
+        {
+          // > process
+          isRedir = true;
+	  *out = true;
+        }
+      else
+        {
+          isRedir = false;
+        }
+    }
 }
 // Reads CL and Stores it inside the buffer
 void clearArgs(char *newargv[], char *newargv2[])
