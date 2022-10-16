@@ -81,10 +81,10 @@ int main()
     background = false;
 
     numberOfArgs = tokenize(buffer, cl);
-    printf("Number of args: %i\n", numberOfArgs);
+    //printf("Number of args: %i\n", numberOfArgs);
     background = isBackground(numberOfArgs, cl, newargv);
     isPipe = isPipeline(numberOfArgs, cl, newargv, newargv2);
-    printf("Is a Pipe %d\n", isPipe);
+    //printf("Is a Pipe %d\n", isPipe);
 
     if (isPipe == false)
     {
@@ -101,11 +101,22 @@ int main()
         redirection = isRedirection(cl, &in, &out, numberOfArgs);
         if (in)
 	  {
-	    newargv[1] = NULL;
-	    newargv[2] = NULL;
-	    int fd0 = open(commandLine.arg3, O_RDONLY);
-	    dup2(fd0, 0);
-	    close(fd0);
+	    if(numberOfArgs == 3)
+	      {
+		newargv[1] = NULL;
+		newargv[2] = NULL;
+		int fd0 = open(commandLine.arg3, O_RDONLY);
+		dup2(fd0, 0);
+		close(fd0);
+	      }
+	    else
+	      {
+		newargv[2] = NULL;
+                newargv[3] = NULL;
+                int fd0 = open(commandLine.arg4, O_RDONLY);
+                dup2(fd0,0);
+                close(fd0);
+	      }
 	  }
         if (out)
 	  {
@@ -124,17 +135,8 @@ int main()
 		int fd1 = open(commandLine.arg3, O_WRONLY);
 		dup2(fd1,1);
 		close(fd1);
-	      }
-	    
-	    /*
-	      newargv[1] = NULL;
-	      
-	      newargv[2] = NULL;
-	      int fd1 = open(commandLine.arg3, O_WRONLY);
-	      dup2(fd1, 1);
-	      close(fd1);*/
+	      }	    
 	  }
-
         if (background == true)
         {
           setpgid(0, 0);
@@ -163,7 +165,7 @@ int main()
     else
     {
       // process pipe
-      printf("Processed Pipe!\n");
+      //printf("Processed Pipe!\n");
       processPipe(newargv, newargv2);
       //      printf("Processed Pipe!\n");
     }
@@ -194,7 +196,7 @@ bool isRedirection(CLInput *commandLine, bool *in, bool *out, int numberOfArgs)
 	{
 	  // > process
 	  isRedir = true;
-    *out = true;
+	  *out = true;
 	}
       else
 	{
@@ -267,11 +269,12 @@ int tokenize(char buffer[], CLInput *commandLine)
     i = tok(buffer, commandLine->arg4, i, &numOfArgs);
     i = tok(buffer, commandLine->arg5, i, &numOfArgs);
 
+    /*
     printf("\nfirst arg is: %s\n", commandLine->arg1);
     printf("\nSecond arg is: %s\n", commandLine->arg2);
     printf("\nThird arg is: %s\n", commandLine->arg3);
     printf("\nFourth arg is: %s\n", commandLine->arg4);
-    printf("\nFifth arg is: %s\n", commandLine->arg5);
+    printf("\nFifth arg is: %s\n", commandLine->arg5);*/
   }
   return numOfArgs;
 }
@@ -329,14 +332,8 @@ bool isPipeline(int numberOfArgs, CLInput *commandLine, char *newargv[], char *n
     {
       clearArgs(newargv, newargv2);
       newargv[0] = commandLine->arg1;
-      /*newargv[1] = NULL;
-      newargv[2] = NULL;
-      newargv[3] = NULL;
-      newargv[4] = NULL;
-      newargv[5] = NULL;*/
       newargv2[0] = commandLine->arg3;
       isPipe = true;
-      //*commandLine->arg2 = NULL;
     }
   }
   if (numberOfArgs == 4)
@@ -349,7 +346,6 @@ bool isPipeline(int numberOfArgs, CLInput *commandLine, char *newargv[], char *n
       newargv2[0] = commandLine->arg3;
       newargv2[1] = commandLine->arg4;
       isPipe = true;
-      //      *commandLine->arg2 = NULL;
     }
     else
     {
@@ -361,7 +357,6 @@ bool isPipeline(int numberOfArgs, CLInput *commandLine, char *newargv[], char *n
         newargv[1] = commandLine->arg2;
         newargv2[0] = commandLine->arg4;
         isPipe = true;
-        // *commandLine->arg3 = NULL;
       }
     }
   }
@@ -376,28 +371,10 @@ bool isPipeline(int numberOfArgs, CLInput *commandLine, char *newargv[], char *n
       newargv2[0] = commandLine->arg4;
       newargv2[1] = commandLine->arg5;
       isPipe = true;
-      //      *commandLine->arg3 = NULL;
     }
   }
-  /*
-  if(isPipe == true)
-    {
-      newargv[0] = NULL;
-      newargv[1] = NULL;
-      newargv[2] = NULL;
-      newargv[3] = NULL;
-      newargv[4] = NULL;
-
-      newargv2[0] = NULL;
-      newargv2[1] = NULL;
-      newargv2[2] = NULL;
-      newargv2[3] = NULL;
-      newargv2[4] = NULL;
-    }
-  */
   return isPipe;
 }
-
 bool isBackground(int numberOfArgs, CLInput *commandLine, char *newargv[])
 {
   int argumentNumber;
@@ -422,22 +399,50 @@ bool isBackground(int numberOfArgs, CLInput *commandLine, char *newargv[])
       newargv[1] = NULL;
     }
   }
-  else
+  else if(numberOfArgs == 3)
   {
     newargv[0] = commandLine->arg1;
     newargv[1] = commandLine->arg2;
     newargv[2] = commandLine->arg3;
     comp = my_strcmp(backgroundFlag, commandLine->arg3);
     if (comp == 0)
-    {
-      background = true;
-      argumentNumber = 3;
-      newargv[2] = NULL;
-    }
-
-    // newargv[3] = commandLine.arg4;
-    // newargv[4] = commandLine.arg5;
+      {
+	background = true;
+	argumentNumber = 3;
+	newargv[2] = NULL;
+      }
   }
+  else if(numberOfArgs == 4)
+    {
+      newargv[0] = commandLine->arg1;
+      newargv[1] = commandLine->arg2;
+      newargv[2] = commandLine->arg3;
+      newargv[3] = commandLine->arg4;
+      comp = my_strcmp(backgroundFlag, commandLine->arg4);
+      if (comp == 0)
+	{
+	  background = true;
+	  argumentNumber = 4;
+	  newargv[3] = NULL;
+	}
+      
+    }
+  else
+    {
+      newargv[0] = commandLine->arg1;
+      newargv[1] = commandLine->arg2;
+      newargv[2] = commandLine->arg3;
+      newargv[3] = commandLine->arg4;
+      newargv[4] = commandLine->arg5;
+      comp = my_strcmp(backgroundFlag, commandLine->arg5);
+      if (comp == 0)
+        {
+          background = true;
+          argumentNumber = 5;
+          newargv[4] = NULL;
+        }
+    }
+  
   return background;
 }
 int tok(char buffer[], char arg[], int i, int *numOfArgs)
