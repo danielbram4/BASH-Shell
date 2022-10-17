@@ -3,46 +3,13 @@
   By Daniel Bahrami and Scott Charles III
 */
 #include <stdio.h>
+#include "mysh.h"
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-
-#define BUFF_LEN 256
-
-typedef int bool;
-#define true 1
-#define false 0
-
-#define READ_END 0
-#define WRITE_END 1
-
-// Represents CommandLine as a structure
-struct CLInput
-{
-  char arg1[BUFF_LEN];
-  char arg2[BUFF_LEN];
-  char arg3[BUFF_LEN];
-  char arg4[BUFF_LEN];
-  char arg5[BUFF_LEN];
-};
-typedef struct CLInput CLInput;
-
-// Function Prototypes
-bool checkExit(int bytesRead, char buffer[]);
-void clearCL(CLInput *commandLine);
-bool readCL(char buffer[]);
-int tokenize(char buffer[], CLInput *commandLine);
-int tok(char buffer[], char arg[], int i, int *numOfArgs);
-void clearArg(char arg[]);
-int my_strcmp(char *s1, char *s2);
-bool isBackground(int numOfArgs, CLInput *commandLine, char *newargv[]);
-bool isPipeline(int numberOfArgs, CLInput *commandLine, char *argv1[], char *argv2[]);
-void clearArgs(char *newargv[], char *newargv2[]);
-void processPipe(char *argv1[], char *argv2[]);
-bool isRedirection(CLInput *commandLine, bool *in, bool *out, int numberOfArgs);
 
 int main()
 {
@@ -69,6 +36,8 @@ int main()
 
   char *const newenvp[] = {NULL};
 
+  login(buffer);
+  
   write(1, "mysh$ ", 6);
   exitFlag = readCL(buffer);
 
@@ -174,6 +143,27 @@ int main()
     exitFlag = readCL(buffer);
   }
   return 0;
+}
+void login(char buffer[])
+{
+  int compUser = 0;
+  int compPass = 0;
+  bool correctLogin = false;
+  char user1[BUFF_LEN] = "dan\n";
+  char pass1[BUFF_LEN] = "apple\n";
+  do{
+    clearArg(buffer);
+    write(1, "enter username: ", 16);
+    read(0, buffer, BUFF_LEN);
+    compUser = my_strcmp(buffer, user1);
+  }while(compUser != 0);
+  do{
+    clearArg(buffer);
+    write(1, "enter password: ", 16);
+    read(0, buffer, BUFF_LEN);
+    compPass = my_strcmp(buffer, pass1);
+  }while(compPass != 0);
+    
 }
 bool isRedirection(CLInput *commandLine, bool *in, bool *out, int numberOfArgs)
 {
