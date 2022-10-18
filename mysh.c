@@ -15,45 +15,47 @@ int main()
 {
   CLInput commandLine = {};
   CLInput *cl = &commandLine;
-
   char buffer[BUFF_LEN] = {};
+  char *const newenvp[] = {NULL};
+  char *newargv[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
+  char *newargv2[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
 
   int bytesRead;
-  bool exitFlag = false;
-  pid_t pid;
-  pid_t pid2;
   int status;
   int pipefd[2];
   int isCommand;
   int numberOfArgs = 0;
-  bool background = false;
   int comp;
   int argumentNumber;
   int isPipe = 0;
+
+  bool exitFlag = false;
+  bool background = false;
   bool redirection = false;
   bool in = false;
   bool out = false;
 
-  char *const newenvp[] = {NULL};
+  pid_t pid;
+  pid_t pid2;
+
+  signal(SIGCHLD, &handle_sigchld);
 
   login(buffer);
-  
+
   write(1, "mysh$ ", 6);
   exitFlag = readCL(buffer);
 
-  char *newargv[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
-  char *newargv2[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
-
+  // Main loop for command prompt
   while (exitFlag == false)
   {
+    // initialize new prompt
     clearArgs(newargv, newargv2);
     background = false;
 
+    // check command conditions
     numberOfArgs = tokenize(buffer, cl);
-    //printf("Number of args: %i\n", numberOfArgs);
     background = isBackground(numberOfArgs, cl, newargv);
     isPipe = isPipeline(numberOfArgs, cl, newargv, newargv2);
-    //printf("Is a Pipe %d\n", isPipe);
 
     if (isPipe == false)
     {
@@ -68,47 +70,51 @@ int main()
       if (pid == 0)
       {
         redirection = isRedirection(cl, &in, &out, numberOfArgs);
+
+        // If input redirected
         if (in)
-	  {
-	    if(numberOfArgs == 3)
-	      {
-		newargv[1] = NULL;
-		newargv[2] = NULL;
-		int fd0 = open(commandLine.arg3, O_RDONLY);
-		dup2(fd0, 0);
-		close(fd0);
-	      }
-	    else
-	      {
-		newargv[2] = NULL;
-                newargv[3] = NULL;
-                int fd0 = open(commandLine.arg4, O_RDONLY);
-                dup2(fd0,0);
-                close(fd0);
-	      }
-	  }
+        {
+          if (numberOfArgs == 3)
+          {
+            newargv[1] = NULL;
+            newargv[2] = NULL;
+            int fd0 = open(commandLine.arg3, O_RDONLY);
+            dup2(fd0, 0);
+            close(fd0);
+          }
+          else
+          {
+            newargv[2] = NULL;
+            newargv[3] = NULL;
+            int fd0 = open(commandLine.arg4, O_RDONLY);
+            dup2(fd0, 0);
+            close(fd0);
+          }
+        }
+        // If output redirected
         if (out)
-	  {
-	    if(numberOfArgs == 4)
-	      {
-		newargv[2] = NULL;
-		newargv[3] = NULL;
-		int fd1 = open(commandLine.arg4, O_WRONLY);
-		dup2(fd1,1);
-		close(fd1);
-	      }
-	    else
-	      {
-		newargv[1] = NULL;
-		newargv[2] = NULL;
-		int fd1 = open(commandLine.arg3, O_WRONLY);
-		dup2(fd1,1);
-		close(fd1);
-	      }	    
-	  }
+        {
+          if (numberOfArgs == 4)
+          {
+            newargv[2] = NULL;
+            newargv[3] = NULL;
+            int fd1 = open(commandLine.arg4, O_WRONLY);
+            dup2(fd1, 1);
+            close(fd1);
+          }
+          else
+          {
+            newargv[1] = NULL;
+            newargv[2] = NULL;
+            int fd1 = open(commandLine.arg3, O_WRONLY);
+            dup2(fd1, 1);
+            close(fd1);
+          }
+        }
+        // If process is sent to the background
         if (background == true)
         {
-          setpgid(0, 0);
+          setpgid(0, 1);
         }
 
         isCommand = execve(commandLine.arg1, newargv, newenvp);
@@ -128,15 +134,15 @@ int main()
         else
         {
           waitpid(pid, &status, WNOHANG);
+          printf("%d", pid);
+          kill(pid, SIGCHLD);
         }
       }
     }
     else
     {
       // process pipe
-      //printf("Processed Pipe!\n");
       processPipe(newargv, newargv2);
-      //      printf("Processed Pipe!\n");
     }
 
     write(1, "mysh$ ", 6);
@@ -151,20 +157,26 @@ void login(char buffer[])
   bool correctLogin = false;
   char user1[BUFF_LEN] = "dan\n";
   char pass1[BUFF_LEN] = "apple\n";
-  do{
+  // Prompt Username
+  do
+  {
     clearArg(buffer);
     write(1, "enter username: ", 16);
     read(0, buffer, BUFF_LEN);
     compUser = my_strcmp(buffer, user1);
-  }while(compUser != 0);
-  do{
+  } while (compUser != 0);
+
+  // Prompt Password
+  do
+  {
     clearArg(buffer);
     write(1, "enter password: ", 16);
     read(0, buffer, BUFF_LEN);
     compPass = my_strcmp(buffer, pass1);
-  }while(compPass != 0);
-    
+  } while (compPass != 0);
 }
+
+// Checks for I/O redirection
 bool isRedirection(CLInput *commandLine, bool *in, bool *out, int numberOfArgs)
 {
   char inFlag[BUFF_LEN] = {"<"};
@@ -173,48 +185,49 @@ bool isRedirection(CLInput *commandLine, bool *in, bool *out, int numberOfArgs)
   bool isRedir;
   *in = false;
   *out = false;
-  if(numberOfArgs == 3)
+  if (numberOfArgs == 3)
+  {
+    comp = my_strcmp(inFlag, commandLine->arg2);
+    if (comp == 0)
     {
-      comp = my_strcmp(inFlag, commandLine->arg2);
-      if (comp == 0)
-	{
-	  // < process
-	  isRedir = true;
-	  *in = true;
-	}
-      else if (my_strcmp(outFlag, commandLine->arg2) == 0)
-	{
-	  // > process
-	  isRedir = true;
-	  *out = true;
-	}
-      else
-	{
-	  isRedir = false;
-	}
+      // < process
+      isRedir = true;
+      *in = true;
     }
-  else if(numberOfArgs == 4)
+    else if (my_strcmp(outFlag, commandLine->arg2) == 0)
     {
-      comp = my_strcmp(inFlag, commandLine->arg3);
-      if (comp == 0)
-        {
-          // < process
-          isRedir = true;
-          *in = true;
-        }
-      else if (my_strcmp(outFlag, commandLine->arg3) == 0)
-        {
-          // > process
-          isRedir = true;
-	  *out = true;
-        }
-      else
-        {
-          isRedir = false;
-        }
+      // > process
+      isRedir = true;
+      *out = true;
     }
+    else
+    {
+      isRedir = false;
+    }
+  }
+  else if (numberOfArgs == 4)
+  {
+    comp = my_strcmp(inFlag, commandLine->arg3);
+    if (comp == 0)
+    {
+      // < process
+      isRedir = true;
+      *in = true;
+    }
+    else if (my_strcmp(outFlag, commandLine->arg3) == 0)
+    {
+      // > process
+      isRedir = true;
+      *out = true;
+    }
+    else
+    {
+      isRedir = false;
+    }
+  }
 }
-// Reads CL and Stores it inside the buffer
+
+// Sets all arguments to null
 void clearArgs(char *newargv[], char *newargv2[])
 {
   newargv[0] = NULL;
@@ -229,6 +242,7 @@ void clearArgs(char *newargv[], char *newargv2[])
   newargv2[3] = NULL;
   newargv2[4] = NULL;
 }
+
 bool readCL(char buffer[])
 {
   int bytesRead = 0;
@@ -242,6 +256,7 @@ bool readCL(char buffer[])
   exitCond = checkExit(bytesRead, buffer);
   return exitCond;
 }
+
 int tokenize(char buffer[], CLInput *commandLine)
 {
   int bytesRead = 0;
@@ -258,16 +273,11 @@ int tokenize(char buffer[], CLInput *commandLine)
     i = tok(buffer, commandLine->arg3, i, &numOfArgs);
     i = tok(buffer, commandLine->arg4, i, &numOfArgs);
     i = tok(buffer, commandLine->arg5, i, &numOfArgs);
-
-    /*
-    printf("\nfirst arg is: %s\n", commandLine->arg1);
-    printf("\nSecond arg is: %s\n", commandLine->arg2);
-    printf("\nThird arg is: %s\n", commandLine->arg3);
-    printf("\nFourth arg is: %s\n", commandLine->arg4);
-    printf("\nFifth arg is: %s\n", commandLine->arg5);*/
   }
   return numOfArgs;
 }
+
+// processes a pipe command
 void processPipe(char *newargv[], char *newargv2[])
 {
   int pipefd[2];
@@ -309,6 +319,8 @@ void processPipe(char *newargv[], char *newargv2[])
   waitpid(pid1, &child_status, 0);
   waitpid(pid2, &child_status, 0);
 }
+
+// checks if a pipe is requested and sets arguments
 bool isPipeline(int numberOfArgs, CLInput *commandLine, char *newargv[], char *newargv2[])
 {
   bool isPipe = false;
@@ -365,6 +377,8 @@ bool isPipeline(int numberOfArgs, CLInput *commandLine, char *newargv[], char *n
   }
   return isPipe;
 }
+
+// checks if process is sent to the background and sets arguments
 bool isBackground(int numberOfArgs, CLInput *commandLine, char *newargv[])
 {
   int argumentNumber;
@@ -389,52 +403,53 @@ bool isBackground(int numberOfArgs, CLInput *commandLine, char *newargv[])
       newargv[1] = NULL;
     }
   }
-  else if(numberOfArgs == 3)
+  else if (numberOfArgs == 3)
   {
     newargv[0] = commandLine->arg1;
     newargv[1] = commandLine->arg2;
     newargv[2] = commandLine->arg3;
     comp = my_strcmp(backgroundFlag, commandLine->arg3);
     if (comp == 0)
-      {
-	background = true;
-	argumentNumber = 3;
-	newargv[2] = NULL;
-      }
+    {
+      background = true;
+      argumentNumber = 3;
+      newargv[2] = NULL;
+    }
   }
-  else if(numberOfArgs == 4)
+  else if (numberOfArgs == 4)
+  {
+    newargv[0] = commandLine->arg1;
+    newargv[1] = commandLine->arg2;
+    newargv[2] = commandLine->arg3;
+    newargv[3] = commandLine->arg4;
+    comp = my_strcmp(backgroundFlag, commandLine->arg4);
+    if (comp == 0)
     {
-      newargv[0] = commandLine->arg1;
-      newargv[1] = commandLine->arg2;
-      newargv[2] = commandLine->arg3;
-      newargv[3] = commandLine->arg4;
-      comp = my_strcmp(backgroundFlag, commandLine->arg4);
-      if (comp == 0)
-	{
-	  background = true;
-	  argumentNumber = 4;
-	  newargv[3] = NULL;
-	}
-      
+      background = true;
+      argumentNumber = 4;
+      newargv[3] = NULL;
     }
+  }
   else
+  {
+    newargv[0] = commandLine->arg1;
+    newargv[1] = commandLine->arg2;
+    newargv[2] = commandLine->arg3;
+    newargv[3] = commandLine->arg4;
+    newargv[4] = commandLine->arg5;
+    comp = my_strcmp(backgroundFlag, commandLine->arg5);
+    if (comp == 0)
     {
-      newargv[0] = commandLine->arg1;
-      newargv[1] = commandLine->arg2;
-      newargv[2] = commandLine->arg3;
-      newargv[3] = commandLine->arg4;
-      newargv[4] = commandLine->arg5;
-      comp = my_strcmp(backgroundFlag, commandLine->arg5);
-      if (comp == 0)
-        {
-          background = true;
-          argumentNumber = 5;
-          newargv[4] = NULL;
-        }
+      background = true;
+      argumentNumber = 5;
+      newargv[4] = NULL;
     }
-  
+  }
+
   return background;
 }
+
+// tokenizes
 int tok(char buffer[], char arg[], int i, int *numOfArgs)
 {
   int bytesRead = 0;
@@ -473,6 +488,8 @@ int tok(char buffer[], char arg[], int i, int *numOfArgs)
   }
   return i;
 }
+
+// internal exit command
 bool checkExit(int bytesRead, char buffer[])
 
 {
@@ -488,8 +505,8 @@ bool checkExit(int bytesRead, char buffer[])
   return sameString;
 }
 
+// clears the command line
 void clearCL(CLInput *commandLine)
-
 {
   int i = 0;
   for (i = 0; i < BUFF_LEN; i++)
@@ -500,6 +517,7 @@ void clearCL(CLInput *commandLine)
   }
 }
 
+// clears a single argument array
 void clearArg(char arg[])
 {
   int i = 0;
@@ -508,6 +526,14 @@ void clearArg(char arg[])
     arg[i] = 0;
   }
 }
+
+//notifies user when process is complete
+void handle_sigchld(int sig)
+{
+  printf("Process Complete!\n");
+}
+
+// compares a string
 int my_strcmp(char *s1, char *s2)
 {
   int charCompareStatus = 0;
