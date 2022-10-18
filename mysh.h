@@ -9,7 +9,6 @@ typedef int bool;
 #define READ_END 0
 #define WRITE_END 1
 
-// Represents CommandLine as a structure
 struct CLInput
 {
   char arg1[BUFF_LEN];
@@ -20,19 +19,14 @@ struct CLInput
 };
 typedef struct CLInput CLInput;
 
-// Function Prototypes
-bool checkExit(int bytesRead, char buffer[]);
-void clearCL(CLInput *commandLine);
-bool readCL(char buffer[]);
-int tokenize(char buffer[], CLInput *commandLine);
-int tok(char buffer[], char arg[], int i, int *numOfArgs);
-void clearArg(char arg[]);
-int my_strcmp(char *s1, char *s2);
-bool isBackground(int numOfArgs, CLInput *commandLine, char *newargv[]);
-bool isPipeline(int numberOfArgs, CLInput *commandLine, char *argv1[], char *argv2[]);
-void clearArgs(char *newargv[], char *newargv2[]);
-void processPipe(char *argv1[], char *argv2[]);
-bool isRedirection(CLInput *commandLine, bool *in, bool *out, int numberOfArgs);
-void login(char buffer[]);
+#include "shellOps.h"
+#include "commandLineOps.h"
+#include "stringOps.h"
+#include "signalhandlers.h"
+#include <unistd.h>
+#include <stdlib.h>
+#include <sys/wait.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #endif

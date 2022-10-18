@@ -1,0 +1,18 @@
+total 76
+drwxrwxrwx 1 schar724 schar724  4096 Oct 18 12:37 .
+drwxrwxrwx 1 schar724 schar724  4096 Oct 18 12:19 ..
+drwxrwxrwx 1 schar724 schar724  4096 Oct 18 12:19 .git
+-rwxrwxrwx 1 schar724 schar724   435 Oct 13 12:54 .gitignore
+drwxrwxrwx 1 schar724 schar724  4096 Oct 18 12:29 .vscode
+-rwxrwxrwx 1 schar724 schar724    77 Oct 13 10:41 makefile
+-rwxrwxrwx 1 schar724 schar724    68 Oct 13 10:41 makefile~
+-rwxrwxrwx 1 schar724 schar724 32280 Oct 18 12:35 mysh
+-rwxrwxrwx 1 schar724 schar724 11882 Oct 18 12:35 mysh.c
+-rwxrwxrwx 1 schar724 schar724  1113 Oct 13 10:41 mysh.c~
+-rwxrwxrwx 1 schar724 schar724  1065 Oct 18 12:35 mysh.h
+-rwxrwxrwx 1 schar724 schar724 23512 Oct 18 12:35 mysh.o
+-rwxrwxrwx 1 schar724 schar724   151 Oct 18 12:27 signalhandlers.c
+-rwxrwxrwx 1 schar724 schar724    13 Oct 18 07:44 t1.txt
+-rwxrwxrwx 1 schar724 schar724    13 Oct 18 07:44 t2.txt
+-rwxrwxrwx 1 schar724 schar724    13 Oct 18 07:44 t2.txt~
+-rwxrwxrwx 1 schar724 schar724     0 Oct 18 12:37 text.txt
