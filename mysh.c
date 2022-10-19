@@ -5,14 +5,6 @@
 
 #include "mysh.h"
 
-
-
-
-int bgPid;
-
-//TO DO: do we need this??
-// #include <sys/types.h>
-
 int main()
 {
   CLInput commandLine = {};
@@ -41,7 +33,7 @@ int main()
   pid_t pid;
   pid_t pid2;
 
-  signal(SIGCHLD, &handle_sigchld);
+  signal(SIGINT, &handle_sigchld);
 
   login(buffer);
 
@@ -119,9 +111,6 @@ int main()
         if (background == true)
         {
           setpgid(0, 1);
-
-        bgPid = getgpid(getpid());
-          passBgPid(bgPid);
         }
 
         isCommand = execve(commandLine.arg1, newargv, newenvp);
