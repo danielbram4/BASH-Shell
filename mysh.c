@@ -34,7 +34,6 @@ int main()
   pid_t pid2;
 
   signal(SIGINT, &handle_sigchld);
-
   login(buffer);
 
   write(1, "mysh$ ", 6);
@@ -135,7 +134,6 @@ int main()
     }
     else
     {
-      // process pipe
       processPipe(newargv, newargv2);
     }
 

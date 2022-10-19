@@ -4,7 +4,9 @@
 
 
 
-
+// Provides a log username and login prompt to authenticate the user
+// char buffer[], command line input
+// return void
 void login(char buffer[])
 {
   int compUser = 0;
@@ -31,7 +33,12 @@ void login(char buffer[])
   } while (compPass != 0);
 }
 
-// Checks for I/O redirection
+// Checks if I/O redirection was requested and sets either the in or out boolean accoridingly
+// CLInput *commandLine, command line object
+// bool *in, dereferenced 'in' boolean
+// bool *out, dereferenced 'out' boolean
+// int numberOfArgs, the number of arguments in the commandline input
+// returns void
 void checkRedirection(CLInput *commandLine, bool *in, bool *out, int numberOfArgs)
 {
   char inFlag[BUFF_LEN] = {"<"};
@@ -81,7 +88,10 @@ void checkRedirection(CLInput *commandLine, bool *in, bool *out, int numberOfArg
   }
 }
 
-// Sets all arguments to null
+// Clears all arguments in argument buffers 1 and 2
+// char *newargv[], buffer 1
+// char *newargv2[], buffer 2
+// returns void
 void clearArgs(char *newargv[], char *newargv2[])
 {
   newargv[0] = NULL;
@@ -97,7 +107,10 @@ void clearArgs(char *newargv[], char *newargv2[])
   newargv2[4] = NULL;
 }
 
-// processes a pipe command
+// executes the pipe operation based on the two commands passed in buffers 1 and 2
+// char *newargv[], buffer 1
+// char *newargv2[], buffer 2
+// returns void
 void processPipe(char *newargv[], char *newargv2[])
 {
   int pipefd[2];
@@ -140,7 +153,12 @@ void processPipe(char *newargv[], char *newargv2[])
   waitpid(pid2, &child_status, 0);
 }
 
-// checks if a pipe is requested and sets arguments
+// checks if a pipe is requested, sets the argument buffers
+// int numberOfArgs, number of set arguments in the command line object
+// CLInput *commandLine, commandline object
+// char *newargv[], buffer 1
+// char *newargv2[], buffer 2
+// returns true if pipeline is requested
 bool isPipeline(int numberOfArgs, CLInput *commandLine, char *newargv[], char *newargv2[])
 {
   bool isPipe = false;
@@ -199,6 +217,10 @@ bool isPipeline(int numberOfArgs, CLInput *commandLine, char *newargv[], char *n
 }
 
 // checks if process is sent to the background and sets arguments
+// int numberOfArgs, number of set arguments in the command line object
+// CLInput *commandLine, commandline object
+// char *newargv[], buffer 1
+// returns true if '&' is last argument
 bool isBackground(int numberOfArgs, CLInput *commandLine, char *newargv[])
 {
   int argumentNumber;
@@ -269,7 +291,10 @@ bool isBackground(int numberOfArgs, CLInput *commandLine, char *newargv[])
   return background;
 }
 
-// internal exit command
+// internal exit command, exits the shell
+// int bytesRead, number of bytes read 
+// char buffer[], command line input
+// returns true if 'exit' is typed
 bool checkExit(int bytesRead, char buffer[])
 {
   int i = 0;
@@ -285,6 +310,8 @@ bool checkExit(int bytesRead, char buffer[])
 }
 
 // clears a single argument array
+// char arg[], clears the array
+// returns void
 void clearArg(char arg[])
 {
   int i = 0;
