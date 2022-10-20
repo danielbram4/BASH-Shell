@@ -21,3 +21,4 @@ t1.txt
 t2.txt
 t2.txt~
 text.txt
+textFile.txt

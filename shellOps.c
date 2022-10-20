@@ -1,4 +1,5 @@
 #include "mysh.h"
+#include <stdio.h>
 
 // Provides a log username and login prompt to authenticate the user
 // char buffer[], command line input
@@ -33,8 +34,9 @@ void login(char buffer[])
 // returns void
 void checkRedirection(CLInput *commandLine, bool *in, bool *out, int numberOfArgs)
 {
-  char inFlag[1] = {INPUT_CHAR};
-  char outFlag[1] = {OUTPUT_CHAR};
+  char inFlag[BUFF_LEN] = {"<"};
+  char outFlag[BUFF_LEN] = {">"};
+  int comp;
   *in = false;
   *out = false;
   if (numberOfArgs == 3)
@@ -43,7 +45,7 @@ void checkRedirection(CLInput *commandLine, bool *in, bool *out, int numberOfArg
     {
       *in = true;
     }
-    else if (my_strcmp(outFlag, commandLine->arg2) == 0)
+    else if (my_strcmp(outFlag, commandLine->arg2) == EQUAL)
     {
       *out = true;
     }
@@ -87,7 +89,7 @@ void processRedirect(int null1, int null2, char argument[], int direction)
 // returns void
 void clearArgs(char *newargv[], char *newargv2[])
 {
-  for (int i = 0; i < 5; i++)
+  for (int i = 0; i < 6; i++)
   {
     newargv[i] = NULL;
     newargv2[i] = NULL;

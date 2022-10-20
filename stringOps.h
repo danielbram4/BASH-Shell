@@ -14,8 +14,8 @@
 #define EXIT_COMMAND "exit\n"
 #define NEW_LINE_CHAR '\n'
 #define AMPERSAND '&'
-#define INPUT_CHAR '<'
-#define OUTPUT_CHAR '>'
+#define INPUT_CHAR "<"
+#define OUTPUT_CHAR ">"
 #define PIPE_CHAR '|'
 
 int my_strcmp(char *s1, char *s2);

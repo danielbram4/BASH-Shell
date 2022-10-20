@@ -4,6 +4,7 @@
 */
 
 #include "mysh.h"
+#include "stdio.h"
 
 int main()
 {
@@ -79,13 +80,13 @@ int main()
         // If output redirected
         if (out)
         {
-          if (numberOfArgs == 4)
+          if (numberOfArgs == 3)
           {
-            processRedirect(2, 3, commandLine.arg4, OUTPUT);
+            processRedirect(1, 2, commandLine.arg3, OUTPUT);
           }
           else
           {
-            processRedirect(1, 2, commandLine.arg3, OUTPUT);
+            processRedirect(2, 3, commandLine.arg4, OUTPUT);
           }
         }
         // If process is sent to the background

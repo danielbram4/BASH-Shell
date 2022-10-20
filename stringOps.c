@@ -21,7 +21,7 @@ void printPasswordPrompt(){
 }
 
 void printSIGINT(){
-  write(1, " Process Interuppted!\n", PROCESSES_INT_LENGTH); 
+  write(STDOUT_FILENO, " Process Interuppted!\n", PROCESSES_INT_LENGTH); 
 }
 
 // compares a string
@@ -35,11 +35,7 @@ int my_strcmp(char *s1, char *s2)
   }
   // compare the mismatching character
 
-  if(*s1 == *s2){
-    return 0;
-  } else if (*s1 > *s2){
-    return 1;
-  } else {
-    return -1;
-  }
+charCompareStatus = (*s1 == *s2) ? 0 : (*s1 > *s2) ? 1
+                                                     : -1;
+  return charCompareStatus;
 }
