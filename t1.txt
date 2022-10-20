@@ -1,1 +1,24 @@
-Hello there!
+total 124
+-rwxrwxrwx 1 schar724 schar724  1706 Oct 19 19:03 commandLineOps.c
+-rwxrwxrwx 1 schar724 schar724   257 Oct 18 14:41 commandLineOps.h
+-rwxrwxrwx 1 schar724 schar724  7256 Oct 19 19:08 commandLineOps.o
+-rwxrwxrwx 1 schar724 schar724   477 Oct 18 15:50 makefile
+-rwxrwxrwx 1 schar724 schar724    68 Oct 13 10:41 makefile~
+-rwxrwxrwx 1 schar724 schar724 32256 Oct 19 19:09 mysh
+-rwxrwxrwx 1 schar724 schar724  2574 Oct 19 19:02 mysh.c
+-rwxrwxrwx 1 schar724 schar724  1113 Oct 13 10:41 mysh.c~
+-rwxrwxrwx 1 schar724 schar724   623 Oct 19 18:22 mysh.h
+-rwxrwxrwx 1 schar724 schar724  8800 Oct 19 19:02 mysh.o
+-rwxrwxrwx 1 schar724 schar724  7507 Oct 19 19:09 shellOps.c
+-rwxrwxrwx 1 schar724 schar724   628 Oct 19 18:32 shellOps.h
+-rwxrwxrwx 1 schar724 schar724 15840 Oct 19 19:09 shellOps.o
+-rwxrwxrwx 1 schar724 schar724  4504 Oct 19 18:31 signalHandlers.o
+-rwxrwxrwx 1 schar724 schar724   191 Oct 19 18:31 signalhandlers.c
+-rwxrwxrwx 1 schar724 schar724   111 Oct 19 11:19 signalhandlers.h
+-rwxrwxrwx 1 schar724 schar724   825 Oct 19 19:07 stringOps.c
+-rwxrwxrwx 1 schar724 schar724   607 Oct 19 19:08 stringOps.h
+-rwxrwxrwx 1 schar724 schar724  6192 Oct 19 19:08 stringOps.o
+-rwxrwxrwx 2 schar724 schar724     1 Oct 19 19:09 t1.txt
+-rwxrwxrwx 1 schar724 schar724   255 Oct 19 19:08 t2.txt
+-rwxrwxrwx 1 schar724 schar724    13 Oct 18 07:44 t2.txt~
+-rwxrwxrwx 1 schar724 schar724   255 Oct 19 18:20 text.txt

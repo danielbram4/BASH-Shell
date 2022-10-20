@@ -11,8 +11,6 @@ int main()
   CLInput *cl = &commandLine;
   char buffer[BUFF_LEN] = {};
   char *const newenvp[] = {NULL};
-  char *newargv[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
-  char *newargv2[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
 
   int bytesRead;
   int status;
@@ -20,10 +18,9 @@ int main()
   int isCommand;
   int numberOfArgs = 0;
   int comp;
-  int argumentNumber;
-  int isPipe = 0;
-  
+  // int argumentNumber;
 
+  bool isPipe = false;
   bool exitFlag = false;
   bool background = false;
   bool redirection = false;
@@ -36,7 +33,8 @@ int main()
   signal(SIGINT, &handle_sigchld);
   login(buffer);
 
-  write(1, "mysh$ ", 6);
+  printCommandPrompt();
+
   exitFlag = readCL(buffer);
 
   // Main loop for command prompt
@@ -56,9 +54,9 @@ int main()
     {
       pid = fork();
 
-      if (pid == -1)
+      if (pid == ERROR_NO)
       {
-        write(1, "fork failed\n", 12);
+        printForkFailed();
         exit(EXIT_FAILURE);
       }
 
@@ -71,19 +69,11 @@ int main()
         {
           if (numberOfArgs == 3)
           {
-            newargv[1] = NULL;
-            newargv[2] = NULL;
-            int fd0 = open(commandLine.arg3, O_RDONLY);
-            dup2(fd0, 0);
-            close(fd0);
+            processRedirect(1, 2, commandLine.arg3, INPUT);
           }
           else
           {
-            newargv[2] = NULL;
-            newargv[3] = NULL;
-            int fd0 = open(commandLine.arg4, O_RDONLY);
-            dup2(fd0, 0);
-            close(fd0);
+            processRedirect(2, 3, commandLine.arg4, INPUT);
           }
         }
         // If output redirected
@@ -91,19 +81,11 @@ int main()
         {
           if (numberOfArgs == 4)
           {
-            newargv[2] = NULL;
-            newargv[3] = NULL;
-            int fd1 = open(commandLine.arg4, O_WRONLY);
-            dup2(fd1, 1);
-            close(fd1);
+            processRedirect(2, 3, commandLine.arg4, OUTPUT);
           }
           else
           {
-            newargv[1] = NULL;
-            newargv[2] = NULL;
-            int fd1 = open(commandLine.arg3, O_WRONLY);
-            dup2(fd1, 1);
-            close(fd1);
+            processRedirect(1, 2, commandLine.arg3, OUTPUT);
           }
         }
         // If process is sent to the background
@@ -115,8 +97,8 @@ int main()
         isCommand = execve(commandLine.arg1, newargv, newenvp);
         if (isCommand == -1)
         {
-          write(1, "Not Valid, Try again\n", 21);
-          exit(1);
+          printInvalidArgument();
+          exit(EXIT_FAILURE);
         }
       }
       else
@@ -136,9 +118,10 @@ int main()
     {
       processPipe(newargv, newargv2);
     }
-
-    write(1, "mysh$ ", 6);
+    printCommandPrompt();
     exitFlag = readCL(buffer);
   }
   return 0;
 }
+
+

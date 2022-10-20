@@ -2,13 +2,6 @@
 #define MYSH_H
 #define BUFF_LEN 256
 
-typedef int bool;
-#define true 1
-#define false 0
-
-#define READ_END 0
-#define WRITE_END 1
-
 struct CLInput
 {
   char arg1[BUFF_LEN];
@@ -19,6 +12,10 @@ struct CLInput
 };
 typedef struct CLInput CLInput;
 
+typedef int bool;
+#define true 1
+#define false 0
+
 #include "shellOps.h"
 #include "commandLineOps.h"
 #include "stringOps.h"
@@ -28,5 +25,12 @@ typedef struct CLInput CLInput;
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+
+#define ERROR_NO -1
+#define INPUT 0
+#define OUTPUT 1
+
+char *newargv[6];
+char *newargv2[6];
 
 #endif

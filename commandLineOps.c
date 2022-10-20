@@ -1,13 +1,13 @@
-#include "commandLineOps.h"
+#include "mysh.h"
 
 bool readCL(char buffer[])
 {
   int bytesRead = 0;
   int exitCond = false;
-  int endOfString = false;
-  int i = 0;
-  int k = 0;
-  char *delimit = buffer;
+  // int endOfString = false;
+  // int i = 0;
+  // int k = 0;
+  // char *delimit = buffer;
   bytesRead = read(0, buffer, BUFF_LEN);
   exitCond = checkExit(bytesRead, buffer);
   return exitCond;
@@ -15,13 +15,13 @@ bool readCL(char buffer[])
 
 int tokenize(char buffer[], CLInput *commandLine)
 {
-  int bytesRead = 0;
-  int endOfString = false;
+  // int bytesRead = 0;
+  // int endOfString = false;
   int i = 0;
   char *delimit = buffer;
   int numOfArgs = 0;
 
-  if (buffer[0] != '\n')
+  if (buffer[0] != NEW_LINE_CHAR)
   {
     clearCL(commandLine);
     i = tok(buffer, commandLine->arg1, i, &numOfArgs);
@@ -36,12 +36,12 @@ int tokenize(char buffer[], CLInput *commandLine)
 // tokenizes
 int tok(char buffer[], char arg[], int i, int *numOfArgs)
 {
-  int bytesRead = 0;
+  // int bytesRead = 0;
   int endOfString = false;
   char *delimit = buffer;
   int k = 0;
   clearArg(arg);
-  if (buffer[i] == '\n')
+  if (buffer[i] == NEW_LINE_CHAR)
   {
     endOfString = true;
   }
@@ -55,7 +55,7 @@ int tok(char buffer[], char arg[], int i, int *numOfArgs)
 
     i++;
     k++;
-    if (buffer[i] != '\n')
+    if (buffer[i] != NEW_LINE_CHAR)
     {
       *delimit = buffer[i];
     }
@@ -64,7 +64,6 @@ int tok(char buffer[], char arg[], int i, int *numOfArgs)
       endOfString = true;
     }
   }
-
   if (endOfString == false)
   {
     i++;
@@ -82,5 +81,7 @@ void clearCL(CLInput *commandLine)
     commandLine->arg1[i] = 0;
     commandLine->arg2[i] = 0;
     commandLine->arg3[i] = 0;
+    commandLine->arg4[i] = 0;
+    commandLine->arg4[i] = 0;
   }
 }
