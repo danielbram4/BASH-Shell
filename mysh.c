@@ -16,13 +16,11 @@ int main()
   int bytesRead;
   int status;
   int pipefd[2];
-  int isCommand;
   int numberOfArgs = 0;
   int comp;
   // int argumentNumber;
 
   bool isPipe = false;
-  bool exitFlag = false;
   bool background = false;
   bool redirection = false;
   bool in = false;
@@ -33,13 +31,10 @@ int main()
 
   signal(SIGINT, &handle_sigchld);
   login(buffer);
-
   printCommandPrompt();
 
-  exitFlag = readCL(buffer);
-
   // Main loop for command prompt
-  while (exitFlag == false)
+  while (readCL(buffer) == false)
   {
 
     // initialize new prompt
@@ -92,11 +87,13 @@ int main()
         // If process is sent to the background
         if (background == true)
         {
-          setpgid(0, 1);
+          if(setpgid(0, 1) ==  ERROR_NO) {
+            printBackgroundFailed();
+            exit(EXIT_FAILURE);
+          }
         }
 
-        isCommand = execve(commandLine.arg1, newargv, newenvp);
-        if (isCommand == -1)
+        if (execve(commandLine.arg1, newargv, newenvp) == ERROR_NO)
         {
           printInvalidArgument();
           exit(EXIT_FAILURE);
@@ -107,11 +104,17 @@ int main()
         // Parent Process
         if (background == false)
         {
-          waitpid(pid, &status, 0);
+          if(waitpid(pid, &status, 0) == ERROR_NO){
+            printWaitPidFailed();
+            exit(EXIT_FAILURE);
+          }
         }
         else
         {
-          waitpid(pid, &status, WNOHANG);
+          if(waitpid(pid, &status, WNOHANG) == ERROR_NO){
+            printWaitPidFailed();
+            exit(EXIT_FAILURE);
+          }
         }
       }
     }
@@ -120,7 +123,6 @@ int main()
       processPipe(newargv, newargv2);
     }
     printCommandPrompt();
-    exitFlag = readCL(buffer);
   }
   return 0;
 }

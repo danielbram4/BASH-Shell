@@ -14,7 +14,10 @@ void login(char buffer[])
   {
     clearArg(buffer);
     printUsernamePrompt();
-    read(0, buffer, BUFF_LEN);
+    if(read(STDIN_FILENO, buffer, BUFF_LEN) == ERROR_NO){
+      printReadError();
+      exit(EXIT_FAILURE);
+    }
   } while (my_strcmp(buffer, user1) != EQUAL);
 
   // Prompt Password
@@ -22,7 +25,10 @@ void login(char buffer[])
   {
     clearArg(buffer);
     printPasswordPrompt();
-    read(STDIN_FILENO, buffer, BUFF_LEN);
+    if(read(STDIN_FILENO, buffer, BUFF_LEN) == ERROR_NO){
+      printReadError();
+      exit(EXIT_FAILURE);
+    }
   } while (my_strcmp(buffer, pass1) != EQUAL);
 }
 

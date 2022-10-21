@@ -7,6 +7,9 @@
 #define USERNAME_PROMPT_LENGTH 16
 #define PASSWORD_PROMPT_LENGTH 16
 #define PROCESSES_INT_LENGTH 22
+#define BACKGROUND_FAILED_LENGTH 28
+#define WAIT_PID_FAILED_LENGTH 16
+#define READ_ERROR_LENGTH 22
 #define EQUAL 0
 
 #define USERNAME "dan\n"
@@ -25,5 +28,8 @@ void printInvalidArgument();
 void printUsernamePrompt();
 void printPasswordPrompt();
 void printSIGINT();
+void printBackgroundFailed();
+void printWaitPidFailed();
+void printReadError();
 
 #endif

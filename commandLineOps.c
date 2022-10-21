@@ -4,19 +4,17 @@ bool readCL(char buffer[])
 {
   int bytesRead = 0;
   int exitCond = false;
-  // int endOfString = false;
-  // int i = 0;
-  // int k = 0;
-  // char *delimit = buffer;
   bytesRead = read(0, buffer, BUFF_LEN);
+  if(bytesRead == ERROR_NO){
+    printReadError();
+    exit(EXIT_FAILURE);
+  }
   exitCond = checkExit(bytesRead, buffer);
   return exitCond;
 }
 
 int tokenize(char buffer[], CLInput *commandLine)
 {
-  // int bytesRead = 0;
-  // int endOfString = false;
   int i = 0;
   char *delimit = buffer;
   int numOfArgs = 0;
@@ -36,7 +34,6 @@ int tokenize(char buffer[], CLInput *commandLine)
 // tokenizes
 int tok(char buffer[], char arg[], int i, int *numOfArgs)
 {
-  // int bytesRead = 0;
   int endOfString = false;
   char *delimit = buffer;
   int k = 0;

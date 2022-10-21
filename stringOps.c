@@ -24,6 +24,17 @@ void printSIGINT(){
   write(STDOUT_FILENO, " Process Interuppted!\n", PROCESSES_INT_LENGTH); 
 }
 
+void printBackgroundFailed(){
+  write(STDOUT_FILENO, "Background operation failed\n", BACKGROUND_FAILED_LENGTH);
+}
+
+void printWaitPidFailed(){
+  write(STDOUT_FILENO, "Wait PID Failed\n", WAIT_PID_FAILED_LENGTH);
+}
+
+void printReadError(){
+  write(STDOUT_FILENO, "Failure to read input\n", READ_ERROR_LENGTH);
+}
 // compares a string
 int my_strcmp(char *s1, char *s2)
 {
