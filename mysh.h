@@ -30,7 +30,4 @@ typedef int bool;
 #define INPUT 0
 #define OUTPUT 1
 
-char *newargv[6];
-char *newargv2[6];
-
 #endif

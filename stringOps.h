@@ -1,6 +1,8 @@
 #ifndef STRINGOPS_H
 #define STRINGOPS_H
 
+
+
 #define PROMPT_LENGTH 6
 #define FORK_FAILED_LENGTH 12
 #define NOT_VALID_COMMAND_LENGTH 21

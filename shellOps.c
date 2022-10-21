@@ -1,5 +1,10 @@
 #include "mysh.h"
 #include <stdio.h>
+#include "shellOps.h"
+#include "shellOps.h"
+
+char *newargv[6];
+char *newargv2[6];
 
 // Provides a log username and login prompt to authenticate the user
 // char buffer[], command line input

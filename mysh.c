@@ -6,6 +6,9 @@
 #include "mysh.h"
 #include "stdio.h"
 
+char *newargv[6];
+char *newargv2[6];
+
 int main()
 {
   CLInput commandLine = {};
