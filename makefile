@@ -1,5 +1,5 @@
-mysh: mysh.o stringOps.o signalHandlers.o shellOps.o commandLineOps.o
-	gcc -g mysh.o stringOps.o signalHandlers.o shellOps.o commandLineOps.o -o mysh
+mysh: mysh.o stringOps.o signalhandlers.o shellOps.o commandLineOps.o
+	gcc -g mysh.o stringOps.o signalhandlers.o shellOps.o commandLineOps.o -o mysh
 
 mysh.o: mysh.c mysh.h
 	gcc -g -c mysh.c
@@ -7,8 +7,8 @@ mysh.o: mysh.c mysh.h
 stringOps.o: stringOps.c stringOps.h
 	gcc -g -c stringOps.c
 
-signalHandlers.o: signalHandlers.c signalHandlers.h 
-	gcc -g -c signalHandlers.c
+signalhandlers.o: signalhandlers.c signalhandlers.h 
+	gcc -g -c signalhandlers.c
 
 shellOps.o: shellOps.c shellOps.h 
 	gcc -g -c shellOps.c
