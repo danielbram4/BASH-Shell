@@ -6,8 +6,8 @@
 #include "mysh.h"
 #include "stdio.h"
 
-char *newargv[6];
-char *newargv2[6];
+char *newargv_mysh[6];
+char *newargv_mysh2[6];
 
 int main()
 {
@@ -41,13 +41,13 @@ int main()
   {
 
     // initialize new prompt
-    clearArgs(newargv, newargv2);
+    clearArgs(newargv_mysh, newargv_mysh2);
     background = false;
 
     // check command conditions
     numberOfArgs = tokenize(buffer, cl);
-    background = isBackground(numberOfArgs, cl, newargv);
-    isPipe = isPipeline(numberOfArgs, cl, newargv, newargv2);
+    background = isBackground(numberOfArgs, cl, newargv_mysh);
+    isPipe = isPipeline(numberOfArgs, cl, newargv_mysh, newargv_mysh2);
 
     if (isPipe == false)
     {
@@ -68,11 +68,11 @@ int main()
         {
           if (numberOfArgs == 3)
           {
-            processRedirect(1, 2, commandLine.arg3, INPUT);
+            processRedirect(1, 2, commandLine.arg3, INPUT, newargv_mysh, newargv_mysh2);
           }
           else
           {
-            processRedirect(2, 3, commandLine.arg4, INPUT);
+            processRedirect(2, 3, commandLine.arg4, INPUT, newargv_mysh, newargv_mysh2);
           }
         }
         // If output redirected
@@ -80,11 +80,11 @@ int main()
         {
           if (numberOfArgs == 3)
           {
-            processRedirect(1, 2, commandLine.arg3, OUTPUT);
+            processRedirect(1, 2, commandLine.arg3, OUTPUT, newargv_mysh, newargv_mysh2);
           }
           else
           {
-            processRedirect(2, 3, commandLine.arg4, OUTPUT);
+            processRedirect(2, 3, commandLine.arg4, OUTPUT, newargv_mysh, newargv_mysh2);
           }
         }
         // If process is sent to the background
@@ -96,7 +96,7 @@ int main()
           }
         }
 
-        if (execve(commandLine.arg1, newargv, newenvp) == ERROR_NO)
+        if (execve(commandLine.arg1, newargv_mysh, newenvp) == ERROR_NO)
         {
           printInvalidArgument();
           exit(EXIT_FAILURE);
@@ -123,7 +123,7 @@ int main()
     }
     else
     {
-      processPipe(newargv, newargv2);
+      processPipe(newargv_mysh, newargv_mysh2);
     }
     printCommandPrompt();
   }

@@ -11,9 +11,9 @@ mysh.o
 shellOps.c
 shellOps.h
 shellOps.o
-signalHandlers.o
 signalhandlers.c
 signalhandlers.h
+signalhandlers.o
 stringOps.c
 stringOps.h
 stringOps.o

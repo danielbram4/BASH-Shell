@@ -1,7 +1,5 @@
 #include "mysh.h"
 
-char *newargv[6];
-char *newargv2[6];
 //Reads the buffer and Checks if "exit" command as been inputted. Returns boolean whether exit condition has been fullfilled or not.
 bool readCL(char buffer[])
 {

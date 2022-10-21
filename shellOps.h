@@ -20,6 +20,6 @@ bool isPipeline(int numberOfArgs, CLInput *commandLine, char *argv1[], char *arg
 bool isBackground(int numOfArgs, CLInput *commandLine, char *newargv[]);
 bool checkExit(int bytesRead, char buffer[]);
 void clearArg(char arg[]);
-void processRedirect(int null1, int null2, char argument[], int direction);
+void processRedirect(int null1, int null2, char argument[], int direction, char *newargv[], char *newargv2[]);
 
 #endif

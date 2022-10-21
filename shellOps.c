@@ -1,7 +1,4 @@
 #include "mysh.h"
-#include <stdio.h>
-#include "shellOps.h"
-#include "shellOps.h"
 
 char *newargv[6];
 char *newargv2[6];
@@ -68,7 +65,7 @@ void checkRedirection(CLInput *commandLine, bool *in, bool *out, int numberOfArg
   }
 }
 
-void processRedirect(int null1, int null2, char argument[], int direction)
+void processRedirect(int null1, int null2, char argument[], int direction, char *newargv[], char *newargv2[])
 {
   if (direction == INPUT)
   {
