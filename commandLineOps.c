@@ -1,5 +1,6 @@
 #include "mysh.h"
 
+//Reads the buffer and Checks if "exit" command as been inputted. Returns boolean whether exit condition has been fullfilled or not.
 bool readCL(char buffer[])
 {
   int bytesRead = 0;
@@ -13,6 +14,8 @@ bool readCL(char buffer[])
   return exitCond;
 }
 
+//Checks if buffer is empty, if not, tokenizes buffer into max 5 tokens.
+//Returns total number of tokens.
 int tokenize(char buffer[], CLInput *commandLine)
 {
   int i = 0;
@@ -31,7 +34,10 @@ int tokenize(char buffer[], CLInput *commandLine)
   return numOfArgs;
 }
 
-// tokenizes
+// Tokenizes buffer by using a delimiter to check for a space. All characters that occurred before
+// the delimiter are stored in a character array called arg.
+// End of the string has been reached when we come into contact with a newline character. 
+// Returns the index position of the buffer one character after the last space occurred.
 int tok(char buffer[], char arg[], int i, int *numOfArgs)
 {
   int endOfString = false;

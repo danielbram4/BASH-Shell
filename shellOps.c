@@ -70,7 +70,7 @@ void processRedirect(int null1, int null2, char argument[], int direction)
     newargv[null1] = NULL;
     newargv[null2] = NULL;
     int fd0 = open(argument, O_RDONLY);
-    if (fd0 = ERROR_NO)
+    if (fd0 == ERROR_NO)
     {
       printFailedToOpen();
       exit(EXIT_FAILURE);
@@ -91,7 +91,7 @@ void processRedirect(int null1, int null2, char argument[], int direction)
     newargv[null1] = NULL;
     newargv[null2] = NULL;
     int fd1 = open(argument, O_WRONLY);
-    if (fd1 = ERROR_NO)
+    if (fd1 == ERROR_NO)
     {
       printFailedToOpen();
       exit(EXIT_FAILURE);

@@ -1,6 +1,6 @@
 /*
-  Main File.
-  By Daniel Bahrami and Scott Charles III
+  A basic BASH like shell program for the Linux Operating System.
+  By Daniel Bahrami and Scott Charles
 */
 
 #include "mysh.h"
@@ -87,7 +87,7 @@ int main()
         // If process is sent to the background
         if (background == true)
         {
-          if(setpgid(0, 1) ==  ERROR_NO) {
+          if(setpgid(0, 0) ==  ERROR_NO) {
             printBackgroundFailed();
             exit(EXIT_FAILURE);
           }
