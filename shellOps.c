@@ -14,10 +14,7 @@ void login(char buffer[])
   {
     clearArg(buffer);
     printUsernamePrompt();
-    if(read(STDIN_FILENO, buffer, BUFF_LEN) == ERROR_NO){
-      printReadError();
-      exit(EXIT_FAILURE);
-    }
+    readCL(buffer);
   } while (my_strcmp(buffer, user1) != EQUAL);
 
   // Prompt Password
@@ -25,10 +22,7 @@ void login(char buffer[])
   {
     clearArg(buffer);
     printPasswordPrompt();
-    if(read(STDIN_FILENO, buffer, BUFF_LEN) == ERROR_NO){
-      printReadError();
-      exit(EXIT_FAILURE);
-    }
+    readCL(buffer);
   } while (my_strcmp(buffer, pass1) != EQUAL);
 }
 
@@ -76,16 +70,42 @@ void processRedirect(int null1, int null2, char argument[], int direction)
     newargv[null1] = NULL;
     newargv[null2] = NULL;
     int fd0 = open(argument, O_RDONLY);
-    dup2(fd0, direction);
-    close(fd0);
+    if (fd0 = ERROR_NO)
+    {
+      printFailedToOpen();
+      exit(EXIT_FAILURE);
+    }
+    if (dup2(fd0, direction) == ERROR_NO)
+    {
+      printRedirectionFailed();
+      exit(EXIT_FAILURE);
+    }
+    if (close(fd0) == ERROR_NO)
+    {
+      printFailedToClose();
+      exit(EXIT_FAILURE);
+    }
   }
   else if (direction == OUTPUT)
   {
     newargv[null1] = NULL;
     newargv[null2] = NULL;
     int fd1 = open(argument, O_WRONLY);
-    dup2(fd1, direction);
-    close(fd1);
+    if (fd1 = ERROR_NO)
+    {
+      printFailedToOpen();
+      exit(EXIT_FAILURE);
+    }
+    if (dup2(fd1, direction) == ERROR_NO)
+    {
+      printRedirectionFailed();
+      exit(EXIT_FAILURE);
+    }
+    if (close(fd1) == ERROR_NO)
+    {
+      printFailedToClose();
+      exit(EXIT_FAILURE);
+    }
   }
 }
 
@@ -117,35 +137,77 @@ void processPipe(char *newargv[], char *newargv2[])
   char *const argv1[] = {newargv[0], newargv[1], NULL};
   char *const argv2[] = {newargv2[0], newargv2[1], NULL};
 
-  pipe(pipefd);
+  if (pipe(pipefd) == ERROR_NO)
+  {
+    printPipeFailed();
+    exit(EXIT_FAILURE);
+  }
   pid1 = fork();
+
+  if(pid1 == ERROR_NO){
+    printForkFailed();
+    exit(EXIT_FAILURE);
+  }
+
   if (pid1 == 0)
   {
-    close(pipefd[READ_END]);
-    dup2(pipefd[WRITE_END], 1);
-    isCommand = execve(argv1[0], argv1, envp);
-    if (isCommand == -1)
+    if (close(pipefd[READ_END]) == ERROR_NO)
+    {
+      printFailedToClose();
+      exit(EXIT_FAILURE);
+    }
+    if (dup2(pipefd[WRITE_END], 1) == ERROR_NO)
+    {
+      printRedirectionFailed();
+      exit(EXIT_FAILURE);
+    }
+
+    if (execve(argv1[0], argv1, envp) == ERROR_NO)
     {
       printInvalidArgument();
       exit(EXIT_FAILURE);
     }
   }
-  close(pipefd[WRITE_END]);
+
+  if (close(pipefd[WRITE_END]) == ERROR_NO)
+  {
+    printFailedToClose();
+    exit(EXIT_FAILURE);
+  }
   pid2 = fork();
+
+  if(pid2 == ERROR_NO){
+    printForkFailed();
+    exit(EXIT_FAILURE);
+  }
 
   if (pid2 == 0)
   {
-    dup2(pipefd[READ_END], 0);
-    isCommand = execve(argv2[0], argv2, envp);
-    if (isCommand == -1)
+    if(dup2(pipefd[READ_END], 0) == ERROR_NO){
+      printRedirectionFailed();
+      exit(EXIT_FAILURE);
+    }
+    if (execve(argv2[0], argv2, envp) == ERROR_NO)
     {
       printInvalidArgument();
       exit(EXIT_FAILURE);
     }
   }
-  close(pipefd[READ_END]);
-  waitpid(pid1, &child_status, 0);
-  waitpid(pid2, &child_status, 0);
+
+  if(close(pipefd[READ_END]) == ERROR_NO){
+    printFailedToClose();
+    exit(EXIT_FAILURE);
+  }
+
+  if(waitpid(pid1, &child_status, 0)==ERROR_NO){
+    printWaitPidFailed();
+    exit(EXIT_FAILURE);
+  }
+  
+  if(waitpid(pid2, &child_status, 0)==ERROR_NO){
+    printWaitPidFailed();
+    exit(EXIT_FAILURE);
+  }
 }
 
 // checks if a pipe is requested, sets the argument buffers
@@ -213,7 +275,6 @@ bool isPipeline(int numberOfArgs, CLInput *commandLine, char *newargv[], char *n
 // returns true if '&' is last argument
 bool isBackground(int numberOfArgs, CLInput *commandLine, char *newargv[])
 {
-  // int argumentNumber;
   bool background = false;
   char backgroundFlag[BUFF_LEN] = {AMPERSAND};
   if (numberOfArgs == 1)
@@ -227,10 +288,9 @@ bool isBackground(int numberOfArgs, CLInput *commandLine, char *newargv[])
     newargv[1] = commandLine->arg2;
     newargv[2] = NULL;
 
-    if (my_strcmp(backgroundFlag, commandLine->arg2)== EQUAL)
+    if (my_strcmp(backgroundFlag, commandLine->arg2) == EQUAL)
     {
       background = true;
-      // argumentNumber = 2;
       newargv[1] = NULL;
     }
   }
@@ -242,7 +302,6 @@ bool isBackground(int numberOfArgs, CLInput *commandLine, char *newargv[])
     if (my_strcmp(backgroundFlag, commandLine->arg3) == EQUAL)
     {
       background = true;
-      // argumentNumber = 3;
       newargv[2] = NULL;
     }
   }
@@ -255,7 +314,6 @@ bool isBackground(int numberOfArgs, CLInput *commandLine, char *newargv[])
     if (my_strcmp(backgroundFlag, commandLine->arg4) == EQUAL)
     {
       background = true;
-      // argumentNumber = 4;
       newargv[3] = NULL;
     }
   }
@@ -269,7 +327,6 @@ bool isBackground(int numberOfArgs, CLInput *commandLine, char *newargv[])
     if (my_strcmp(backgroundFlag, commandLine->arg5) == EQUAL)
     {
       background = true;
-      // argumentNumber = 5;
       newargv[4] = NULL;
     }
   }

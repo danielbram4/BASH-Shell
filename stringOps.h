@@ -10,7 +10,12 @@
 #define BACKGROUND_FAILED_LENGTH 28
 #define WAIT_PID_FAILED_LENGTH 16
 #define READ_ERROR_LENGTH 22
+#define FAILED_TO_OPEN_LENGTH 20
 #define EQUAL 0
+#define REDIRECTION_FAILED_LENGTH 23
+#define FAILED_TO_CLOSE_LENGTH 21
+#define FAILED_PIPE_LENGTH 20
+#define FAILED_TO_WRITE_LENGTH 16
 
 #define USERNAME "dan\n"
 #define PASSWORD "apple\n"
@@ -31,5 +36,10 @@ void printSIGINT();
 void printBackgroundFailed();
 void printWaitPidFailed();
 void printReadError();
+void printFailedToOpen();
+void printFailedToClose();
+void printRedirectionFailed();
+void printPipeFailed();
+void writeFailed();
 
 #endif
