@@ -1,7 +1,6 @@
 
 #ifndef COMMANDLINEOPS_H
 #define COMMANDLINEOPS_H
-#include "mysh.h"
 
 bool readCL(char buffer[]);
 int tokenize(char buffer[], CLInput *commandLine);

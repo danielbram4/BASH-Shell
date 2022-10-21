@@ -16,6 +16,7 @@
 #define FAILED_TO_CLOSE_LENGTH 21
 #define FAILED_PIPE_LENGTH 20
 #define FAILED_TO_WRITE_LENGTH 16
+#define ERROR_NO -1
 
 #define USERNAME "dan\n"
 #define PASSWORD "apple\n"

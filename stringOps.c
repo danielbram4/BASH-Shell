@@ -1,4 +1,7 @@
-#include "mysh.h"
+// #include "mysh.h"
+#include <stdlib.h>
+#include <unistd.h>
+#include "stringOps.h"
 
 void printCommandPrompt()
 {
