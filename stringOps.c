@@ -1,4 +1,3 @@
-// #include "mysh.h"
 #include <stdlib.h>
 #include <unistd.h>
 #include "stringOps.h"
@@ -49,7 +48,6 @@ void printSIGINT()
   {
     writeFailed();
   }
-  write(STDOUT_FILENO, " Process Interuppted!\n", PROCESSES_INT_LENGTH);
 }
 
 void printBackgroundFailed()
