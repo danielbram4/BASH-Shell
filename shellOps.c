@@ -36,8 +36,8 @@ void login(char buffer[])
 // returns void
 void checkRedirection(CLInput *commandLine, bool *in, bool *out, int numberOfArgs)
 {
-  char inFlag[BUFF_LEN] = {"<"};
-  char outFlag[BUFF_LEN] = {">"};
+  char inFlag[BUFF_LEN] = {INPUT_CHAR};
+  char outFlag[BUFF_LEN] = {OUTPUT_CHAR};
   int comp;
   *in = false;
   *out = false;

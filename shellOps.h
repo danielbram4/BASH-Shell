@@ -1,16 +1,8 @@
 #ifndef SHELLOPS_H
 #define SHELLOPS_H
 
-typedef int bool;
-#define true 1
-#define false 0
-
 #define READ_END 0
 #define WRITE_END 1
-#define BUFF_LEN 256
-#define EQUAL 0
-#define USERNAME "dan\n"
-#define PASSWORD "apple\n"
 
 void login(char buffer[]);
 void checkRedirection(CLInput *commandLine, bool *in, bool *out, int numberOfArgs);

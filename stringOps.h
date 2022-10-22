@@ -1,8 +1,6 @@
 #ifndef STRINGOPS_H
 #define STRINGOPS_H
 
-
-
 #define PROMPT_LENGTH 6
 #define FORK_FAILED_LENGTH 12
 #define NOT_VALID_COMMAND_LENGTH 21
@@ -18,7 +16,6 @@
 #define FAILED_TO_CLOSE_LENGTH 21
 #define FAILED_PIPE_LENGTH 20
 #define FAILED_TO_WRITE_LENGTH 16
-#define ERROR_NO -1
 
 #define USERNAME "dan\n"
 #define PASSWORD "apple\n"
